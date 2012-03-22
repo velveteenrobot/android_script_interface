@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+              android:orientation="vertical"
+              android:layout_width="fill_parent"
+              android:layout_height="fill_parent"
+              android:id="@+id/main_layout">
+  <LinearLayout android:orientation="horizontal" android:layout_width="fill_parent" android:layout_height="wrap_content"
+                android:gravity="right"
+                android:background="#ff404040"
+                android:id="@+id/top_bar" />
+  <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+	      android:id="@+id/main_layout"
+	      android:layout_width="fill_parent"
+	      android:layout_height="fill_parent"
+	      android:fillViewport="true" >
+    <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+		  android:orientation="vertical"
+		  android:layout_width="fill_parent"
+		  android:layout_height="fill_parent">
+      <!--Add your layout here -->
+      <TextView android:layout_width="fill_parent" android:layout_height="wrap_content"
+		android:layout_weight="1"
+		android:text="High-Five"
+		android:textSize="30sp" /> 
+      <Button android:layout_width="fill_parent" 
+              android:layout_height="wrap_content" 
+              android:text="Left"
+              android:onClick="highFiveLeft" />
+      <Button android:layout_width="fill_parent" 
+              android:layout_height="wrap_content" 
+              android:text="Right"
+              android:onClick="highFiveRight" />
+      <Button android:layout_width="fill_parent" 
+              android:layout_height="wrap_content" 
+              android:text="Double"
+              android:onClick="highFiveDouble" />
+      <TextView android:layout_width="fill_parent" android:layout_height="wrap_content"
+		android:layout_weight="1"
+		android:text="Low-Five"
+              android:textSize="30sp" /> 
+      <Button android:layout_width="fill_parent" 
+              android:layout_height="wrap_content" 
+              android:text="Left"
+              android:onClick="lowFiveLeft" />
+      <Button android:layout_width="fill_parent" 
+              android:layout_height="wrap_content" 
+              android:text="Right"
+              android:onClick="lowFiveRight" />
+      <TextView android:layout_width="fill_parent" android:layout_height="wrap_content"
+		android:layout_weight="1"
+		android:text="Pound"
+		android:textSize="30sp" /> 
+      <Button android:layout_width="fill_parent" 
+              android:layout_height="wrap_content" 
+              android:text="Left"
+              android:onClick="poundLeft" />
+      <Button android:layout_width="fill_parent" 
+              android:layout_height="wrap_content" 
+              android:text="Right"
+              android:onClick="poundRight" />
+      <Button android:layout_width="fill_parent" 
+              android:layout_height="wrap_content" 
+              android:text="Double"
+              android:onClick="poundDouble" />
+      <TextView android:layout_width="fill_parent" android:layout_height="wrap_content"
+		android:layout_weight="1"
+		android:text="Hug"
+		android:textSize="30sp" /> 
+      <Button android:layout_width="fill_parent" 
+              android:layout_height="wrap_content" 
+              android:text="Hug"
+              android:onClick="hug" />
+      <TextView android:layout_width="fill_parent" android:layout_height="wrap_content"
+		android:layout_weight="1"
+		android:text="Spine"
+		android:textSize="30sp" /> 
+      <Button android:layout_width="fill_parent" 
+              android:layout_height="wrap_content" 
+              android:text="Raise"
+              android:onClick="raiseSpine" />
+      <Button android:layout_width="fill_parent" 
+              android:layout_height="wrap_content" 
+              android:text="Lower"
+              android:onClick="lowerSpine" />
+    </LinearLayout>
+  </ScrollView>
+</LinearLayout>

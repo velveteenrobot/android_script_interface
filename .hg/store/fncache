@@ -1,0 +1,12 @@
+data/AndroidManifest.xml.i
+data/Makefile.i
+data/build.xml.i
+data/manifest.xml.i
+data/market_images/icon.jpg.i
+data/market_images/screen_1.png.i
+data/market_images/screen_2.png.i
+data/res/drawable/pr2props.jpg.i
+data/res/layout/main.xml.i
+data/res/menu/pr2_props_menu.xml.i
+data/res/values/strings.xml.i
+data/src/ros/android/pr2props/Pr2Props.java.i
