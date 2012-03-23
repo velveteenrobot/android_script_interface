@@ -68,6 +68,10 @@ public class LoginActivity extends RosAppActivity {
     super.onCreate(savedInstanceState);
 
     username_field = (EditText) this.findViewById(R.id.username_field);
+    //if (savedInstanceState != null) {
+    //  username_field.setText(savedInstanceState.getString("LoginText"));
+    //  Log.i("LoginActivity", "Getting saved instance state!");
+    //}
     pw_field = (EditText) this.findViewById(R.id.pw_field);
     login_btn = (Button) this.findViewById(R.id.login_btn);
     cancel_btn = (Button) this.findViewById(R.id.cancel_btn);
@@ -83,6 +87,7 @@ public class LoginActivity extends RosAppActivity {
           Intent intent = new Intent(LoginActivity.this, ScriptInterface.class);
           intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
           startActivity(intent);
+          finish();
         }
       }
     });
@@ -95,6 +100,7 @@ public class LoginActivity extends RosAppActivity {
           Intent intent = new Intent(v.getContext(), ScriptInterface.class);
           intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
           startActivity(intent); 
+          finish();
         }
       }
     });
@@ -131,6 +137,14 @@ public class LoginActivity extends RosAppActivity {
       Log.e("LoginActivity", e.toString());
     }
   }
+
+//  @Override
+//  public void onSaveInstanceState(Bundle savedInstanceState) {
+//    //String s = username_field.getText();
+//    savedInstanceState.putString("LoginText", username_field.getText().toString());
+//    Log.i("LoginActivity", "Saving Insance state: " + username_field.getText().toString());
+//  }
+
 
   /*
   //Callbacks
