@@ -38,6 +38,9 @@ import org.ros.message.trajectory_msgs.JointTrajectory;
 import org.ros.message.trajectory_msgs.JointTrajectoryPoint;
 import java.util.ArrayList;
 import org.ros.message.Duration;
+import android.content.Intent;
+import java.lang.Class;
+
 
 /**
  * @author damonkohler@google.com (Damon Kohler)
@@ -85,6 +88,31 @@ public class ScriptInterface extends RosAppActivity {
     }
   }
 
+
+  @Override 
+  public void onBackPressed() {
+    if (getIntent().getStringExtra("activity") != null) {
+      Class<?> activityClass = null;
+      Intent intent = new Intent();
+      try {
+        activityClass = Class.forName(getIntent().getStringExtra("activity"));
+        intent = new Intent(ScriptInterface.this, activityClass);
+      } catch (ClassNotFoundException e) {
+        intent = ScriptInterface.this.getPackageManager().getLaunchIntentForPackage("org.ros.android.app_chooser");
+      }
+      intent.setAction("android.intent.action.MAIN");
+      intent.addCategory("android.intent.category.LAUNCHER");
+      intent.addCategory("android.intent.category.DEFAULT");
+      startActivity(intent);
+    } else {
+      Intent intent = new Intent();
+      intent = ScriptInterface.this.getPackageManager().getLaunchIntentForPackage("org.ros.android.app_chooser");
+      intent.setAction("android.intent.action.MAIN");
+      intent.addCategory("android.intent.category.LAUNCHER");
+      intent.addCategory("android.intent.category.DEFAULT");
+      startActivity(intent);
+    }
+  }
 
   /*
   //Callbacks

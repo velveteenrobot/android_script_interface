@@ -138,6 +138,15 @@ public class LoginActivity extends RosAppActivity {
     }
   }
 
+  @Override
+  public void onBackPressed() {
+      //Intent intent = new Intent();
+      Intent intent = getPackageManager().getLaunchIntentForPackage("org.ros.android.app_chooser");
+      intent.setAction("android.intent.action.MAIN");
+      intent.addCategory("android.intent.category.LAUNCHER");
+      intent.addCategory("android.intent.category.DEFAULT");
+      startActivity(intent);
+  }
 //  @Override
 //  public void onSaveInstanceState(Bundle savedInstanceState) {
 //    //String s = username_field.getText();
