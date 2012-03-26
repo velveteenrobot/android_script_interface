@@ -41,6 +41,12 @@ import org.ros.message.Duration;
 import android.content.Intent;
 import java.lang.Class;
 
+import android.content.res.Resources;
+import android.widget.TabHost;
+import android.app.TabActivity; 
+import android.widget.Spinner;
+import android.widget.ArrayAdapter;
+import android.widget.AdapterView;
 
 /**
  * @author damonkohler@google.com (Damon Kohler)
@@ -53,8 +59,70 @@ public class ScriptInterface extends RosAppActivity {
   public void onCreate(Bundle savedInstanceState) {
     setDefaultAppName("pr2_props_app/pr2_props");
     setDashboardResource(R.id.top_bar);
-    setMainWindowResource(R.layout.scriptinterface_main);
+    setMainWindowResource(R.layout.main);
     super.onCreate(savedInstanceState);
+    //Resources res = getResources(); // Resource object to get Drawables
+    //TabHost tabHost = getTabHost();  // The activity TabHost
+    //TabHost.TabSpec spec;  // Resusable TabSpec for each tab
+    //Intent intent;  // Reusable Intent for each tab
+
+    /*intent = new Intent().setClass(this, DefaultActivity.class);
+    spec = tabHost.newTabSpec("home").setIndicator("Home",
+                      res.getDrawable(R.drawable.tab_home))
+                  .setContent(intent);
+    tabHost.addTab(spec);
+
+    intent = new Intent().setClass(this, DefaultActivity.class);
+    spec = tabHost.newTabSpec("writeprogram").setIndicator("Write Program",
+                      res.getDrawable(R.drawable.tab_writeprogram))
+                  .setContent(intent);
+    tabHost.addTab(spec);
+
+    // Do the same for the other tabs
+    intent = new Intent().setClass(this, MyPrograms.class);
+    spec = tabHost.newTabSpec("myprograms").setIndicator("My Programs",
+                      res.getDrawable(R.drawable.tab_myprograms))
+                  .setContent(intent);
+    tabHost.addTab(spec);
+
+    intent = new Intent().setClass(this, SongsActivity.class);
+    spec = tabHost.newTabSpec("queue").setIndicator("Queue",
+                      res.getDrawable(R.drawable.tab_queue))
+                  .setContent(intent);
+    tabHost.addTab(spec);
+
+    tabHost.setCurrentTab(2); */
+
+        Spinner spinner = (Spinner) findViewById(R.id.spinner);
+        ArrayAdapter<CharSequence> adapter = ArrayAdapter.createFromResource(
+            this, R.array.program_type, android.R.layout.simple_spinner_item);
+        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        spinner.setAdapter(adapter);
+
+       TabHost tabHost=(TabHost)findViewById(R.id.tabHost);
+        tabHost.setup();
+        
+        TabHost.TabSpec spec1=tabHost.newTabSpec("Tab 1");
+        spec1.setContent(R.id.tab1);
+        spec1.setIndicator("Write Program");
+        
+        TabHost.TabSpec spec2=tabHost.newTabSpec("Tab 2");
+        spec2.setIndicator("Tab 2");
+        spec2.setContent(R.id.tab2);
+        
+        TabHost.TabSpec spec3=tabHost.newTabSpec("Tab 3");
+        spec3.setIndicator("Tab 3");
+        spec3.setContent(R.id.tab3);
+
+        TabHost.TabSpec spec4=tabHost.newTabSpec("Tab 4");
+        spec4.setIndicator("Tab 4");
+        spec4.setContent(R.id.tab4);
+        
+        tabHost.addTab(spec1);
+        tabHost.addTab(spec2);
+        tabHost.addTab(spec3);
+        tabHost.addTab(spec4);
+
   }
 
   @Override

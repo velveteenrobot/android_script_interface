@@ -145,6 +145,7 @@ public class LoginActivity extends RosAppActivity {
       intent.setAction("android.intent.action.MAIN");
       intent.addCategory("android.intent.category.LAUNCHER");
       intent.addCategory("android.intent.category.DEFAULT");
+      //intent.setFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
       startActivity(intent);
   }
 //  @Override
