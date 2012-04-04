@@ -62,6 +62,13 @@ public class LoginActivity extends RosAppActivity {
   /** Called when the activity is first created. */
   @Override
   public void onCreate(Bundle savedInstanceState) {
+
+    if (getIntent().hasExtra("stop")) {
+      Log.i("LoginActivity","Finishing activity...");
+      finishActivity(0);
+      finish();
+    }
+
     setDefaultAppName("pr2_props_app/pr2_props");
     setDashboardResource(R.id.top_bar);
     setMainWindowResource(R.layout.login_main);
@@ -86,7 +93,7 @@ public class LoginActivity extends RosAppActivity {
           //Intent intent = getPackageManager().getLaunchIntentForPackage("org.ros.android.scriptinterface.ScriptInterface");
           Intent intent = new Intent(LoginActivity.this, ScriptInterface.class);
           intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
-          startActivity(intent);
+          startActivityForResult(intent, 0);
           finish();
         }
       }

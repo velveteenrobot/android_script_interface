@@ -9,6 +9,7 @@
   <depend package="appmanandroid"/>
   <depend package="std_msgs"/>
   <depend package="trajectory_msgs"/>
+  <depend package="program_queue"/>
 
   <export>
     <rosjava-android-app target="android-9" />

@@ -30,6 +30,7 @@ import org.ros.node.service.ServiceResponseListener;
 import android.widget.Toast;
 import android.view.Menu;
 import android.view.View;
+import android.view.View.OnClickListener;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.widget.LinearLayout;
@@ -43,57 +44,85 @@ import java.lang.Class;
 
 import android.content.res.Resources;
 import android.widget.TabHost;
+import android.content.DialogInterface;
 import android.app.TabActivity; 
 import android.widget.Spinner;
 import android.widget.ArrayAdapter;
 import android.widget.AdapterView;
+import android.app.Dialog;
+import android.app.AlertDialog;
+import android.app.ProgressDialog;
+import java.lang.String;
+import java.util.Timer;
+import java.util.TimerTask;
+import android.widget.Button;
 
+import program_queue.Program;
+/*
+import pr2_hack_the_future.program_queue.msg.ProgramInfo;
+import pr2_hack_the_future.program_queue.msg.Output;
+import pr2_hack_the_future.program_queue.srv.GetProgram;
+import pr2_hack_the_future.program_queue.srv.GetMyPrograms;
+import pr2_hack_the_future.program_queue.srv.GetPrograms;
+import pr2_hack_the_future.program_queue.srv.Login;
+import pr2_hack_the_future.program_queue.srv.Logout;
+import pr2_hack_the_future.program_queue.srv.ClearQueue;
+import pr2_hack_the_future.program_queue.srv.CreateUser;
+import pr2_hack_the_future.program_queue.srv.CreateProgram;
+import pr2_hack_the_future.program_queue.srv.DequeueProgram;
+import pr2_hack_the_future.program_queue.srv.GetOutput;
+import pr2_hack_the_future.program_queue.srv.GetQueue;
+import pr2_hack_the_future.program_queue.srv.QueueProgram;
+import pr2_hack_the_future.program_queue.srv.RunProgram;
+import pr2_hack_the_future.program_queue.srv.UpdateProgram;
+*/
 /**
  * @author damonkohler@google.com (Damon Kohler)
  * @author pratkanis@willowgarage.com (Tony Pratkanis)
  */
 public class ScriptInterface extends RosAppActivity {
   
+  private static final int token;
+  private static final int EXISTING_PROGRAM_DIALOG = 1;
+  private static final int PYTHON = 1;
+  private static final int PUPPETSCRIPT = 0;
+  private ProgressDialog progress;
+  //private ArrayList<ProgramInfo> my_programs;
+  private EditText name_field;
+  private Spinner spinner;
+  private EditText program_field;
+
   /** Called when the activity is first created. */
   @Override
   public void onCreate(Bundle savedInstanceState) {
+    if (getIntent().hasExtra("stop")) {
+      finish();
+    }
     setDefaultAppName("pr2_props_app/pr2_props");
     setDashboardResource(R.id.top_bar);
     setMainWindowResource(R.layout.main);
     super.onCreate(savedInstanceState);
-    //Resources res = getResources(); // Resource object to get Drawables
-    //TabHost tabHost = getTabHost();  // The activity TabHost
-    //TabHost.TabSpec spec;  // Resusable TabSpec for each tab
-    //Intent intent;  // Reusable Intent for each tab
 
-    /*intent = new Intent().setClass(this, DefaultActivity.class);
-    spec = tabHost.newTabSpec("home").setIndicator("Home",
-                      res.getDrawable(R.drawable.tab_home))
-                  .setContent(intent);
-    tabHost.addTab(spec);
+    name_field = (EditText) findViewById(R.id.name_field);
+    program_field = (EditText) findViewById(R.id.program_field);
+        Button edit_btn = (Button) findViewById(R.id.edit_btn);
+        edit_btn.setOnClickListener(new OnClickListener() {
+          @Override
+          public void onClick(View v) {
+            //show Progress Dialog
+            runOnUiThread(new Runnable() {
+              @Override
+              public void run() {
+                progress = ProgressDialog.show(ScriptInterface.this, "Loading", "Loading your programs...", true, false);
+                progress.setProgressStyle(ProgressDialog.STYLE_SPINNER);
+              }
+            });
 
-    intent = new Intent().setClass(this, DefaultActivity.class);
-    spec = tabHost.newTabSpec("writeprogram").setIndicator("Write Program",
-                      res.getDrawable(R.drawable.tab_writeprogram))
-                  .setContent(intent);
-    tabHost.addTab(spec);
+            //showDialog(EXISTING_PROGRAM_DIALOG);
+          }
+        });
 
-    // Do the same for the other tabs
-    intent = new Intent().setClass(this, MyPrograms.class);
-    spec = tabHost.newTabSpec("myprograms").setIndicator("My Programs",
-                      res.getDrawable(R.drawable.tab_myprograms))
-                  .setContent(intent);
-    tabHost.addTab(spec);
-
-    intent = new Intent().setClass(this, SongsActivity.class);
-    spec = tabHost.newTabSpec("queue").setIndicator("Queue",
-                      res.getDrawable(R.drawable.tab_queue))
-                  .setContent(intent);
-    tabHost.addTab(spec);
-
-    tabHost.setCurrentTab(2); */
-
-        Spinner spinner = (Spinner) findViewById(R.id.spinner);
+        spinner = (Spinner) findViewById(R.id.spinner);
         ArrayAdapter<CharSequence> adapter = ArrayAdapter.createFromResource(
             this, R.array.program_type, android.R.layout.simple_spinner_item);
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
@@ -135,14 +164,39 @@ public class ScriptInterface extends RosAppActivity {
     super.onNodeDestroy(node);
   }
   
-  private void runService(String service) {
-    Log.i("ScriptInterface", "Run: " + service);
+  /*
+  private void getProgram(int id) {
+    Log.i("ScriptInterface", "Run: GetProgram");
     try {
-      ServiceClient<Empty.Request, Empty.Response> appServiceClient =
-        getNode().newServiceClient(service, "std_srvs/Empty");
-      Empty.Request appRequest = new Empty.Request();
-      appServiceClient.call(appRequest, new ServiceResponseListener<Empty.Response>() {
-          @Override public void onSuccess(Empty.Response message) {
+      ServiceClient<GetProgram.Request, GetProgram.Response> appServiceClient =
+        getNode().newServiceClient(service, "package/GetProgram");  //TODO: fix package
+      GetProgram.Request appRequest = new GetProgram.Request();
+      appServiceClient.call(appRequest, new ServiceResponseListener<GetProgram.Response>() {
+          @Override public void onSuccess(GetProgram.Response message) {
+            program_field.setText(message.program.code);
+          }
+
+          @Override public void onFailure(RemoteException e) {
+            //TODO: SHOULD ERROR
+            Log.e("ScriptInterface", e.toString());
+          }
+        });
+    } catch (Exception e) {
+      //TODO: should error
+      Log.e("ScriptInterface", e.toString());
+    }
+  }
+
+  private void getMyPrograms(String service) {
+    Log.i("ScriptInterface", "Run: GetMyPrograms");
+    try {
+      ServiceClient<GetMyPrograms.Request, GetMyPrograms.Response> appServiceClient =
+        getNode().newServiceClient(service, "package/GetMyPrograms");  //TODO: fix package
+      GetMyPrograms.Request appRequest = new GetMyPrograms.Request();
+      appServiceClient.call(appRequest, new ServiceResponseListener<GetMyPrograms.Response>() {
+          @Override public void onSuccess(GetMyPrograms.Response message) {
+            showDialog(EXISTING_PROGRAM_DIALOG);
+            my_programs = message.programs;
           }
         
           @Override public void onFailure(RemoteException e) {
@@ -155,7 +209,7 @@ public class ScriptInterface extends RosAppActivity {
       Log.e("ScriptInterface", e.toString());
     }
   }
-
+  */
 
   @Override 
   public void onBackPressed() {
@@ -182,61 +236,82 @@ public class ScriptInterface extends RosAppActivity {
     }
   }
 
+
+
+
+  @Override
+  protected Dialog onCreateDialog(int id) {
+    String[] program_names = { "program1", "program2", "program3" };
+    final Dialog dialog;
+    switch (id) {
+      case EXISTING_PROGRAM_DIALOG:
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        if (program_names.length>0) { //check out how to get size of that list
+              builder.setTitle("Select a Progam to Edit");
+          builder.setSingleChoiceItems(program_names, 0, null)
+           .setPositiveButton("Edit Selected", new DialogInterface.OnClickListener() {
+             public void onClick(DialogInterface dialog, int whichButton) {
+                dialog.dismiss();
+                int selectedPosition = ((AlertDialog)dialog).getListView().getCheckedItemPosition();
+                showProgram(my_programs[selectedPosition]);
+             }
+           });
+         builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+           public void onClick(DialogInterface dialog, int whichButton) {
+             removeDialog(EXISTING_PROGRAM_DIALOG);
+           }
+         });
+         dialog = builder.create();
+         }
+       else {
+         builder.setTitle("No Programs to Edit. Create a New Program.");
+         dialog = builder.create();
+         final Timer t = new Timer();
+         t.schedule(new TimerTask() {
+           public void run() {
+             removeDialog(EXISTING_PROGRAM_DIALOG);
+           }
+         }, 3*1000);
+       }
+        break;
+      default:
+        dialog = null;
+    }
+    return dialog;
+  }
+
+  @Override
+  public boolean onCreateOptionsMenu(Menu menu) {
+    MenuInflater inflater = getMenuInflater();
+    inflater.inflate(R.menu.options_menu, menu);
+    return true;
+  }
+
+  @Override
+  public boolean onOptionsItemSelected(MenuItem item) {
+    int id = item.getItemId();
+    if (id == R.id.logout) {
+      Intent intent = new Intent(this, LoginActivity.class);
+      intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+      startActivity(intent);
+      finish();
+      return true;
+    } else {
+      return super.onOptionsItemSelected(item);
+    }
+  }
   /*
-  //Callbacks
-  public void highFiveLeft(View view) {
-    runService("/pr2_props/high_five_left");
-  }
-  public void highFiveRight(View view) {
-    runService("/pr2_props/high_five_right");
-  }
-  public void highFiveDouble(View view) { 
-    runService("/pr2_props/high_five_double");
-  }
-  public void lowFiveLeft(View view) { 
-    runService("/pr2_props/low_five_left");
-  }
-  public void lowFiveRight(View view) { 
-    runService("/pr2_props/low_five_right");
-  }
-  public void poundLeft(View view) { 
-    runService("/pr2_props/pound_left");
-  }
-  public void poundRight(View view) { 
-    runService("/pr2_props/low_five_right");
-  }
-  public void poundDouble(View view) { 
-    runService("/pr2_props/pound_double");
-  }
-  public void hug(View view) { 
-    runService("/pr2_props/hug");
-  }
-  public void raiseSpine(View view) { 
-    spineHeight = 0.31;
-  }
-  public void lowerSpine(View view) { 
-    spineHeight = 0.0;
-  }
-  */  
+  public void showPrograms(ProgramInfo info) {
+    //get actual program from program info 
+    //switch program type field, enter program name, put text in edit text
+    Program program = getProgram(info.id); 
+    name_field.setText(info.name);
+    if (info.type == PYTHON) {
+      spinner.setSelection(0);
+    } else if (info.type == PUPPETSCRIPT) {
+      spinner.setSelection(1);
+    }
+     
+  }*/
 
-
-  /** Creates the menu for the options */
-//  @Override
-//  public boolean onCreateOptionsMenu(Menu menu) {
-//    MenuInflater inflater = getMenuInflater();
-//    inflater.inflate(R.menu.pr2_props_menu, menu);
-//    return true;
-//  }
-
-  /** Run when the menu is clicked. */
-//  @Override
-//  public boolean onOptionsItemSelected(MenuItem item) {
-//    switch (item.getItemId()) {
-//    case R.id.kill: //Shutdown if the user clicks kill
-//      android.os.Process.killProcess(android.os.Process.myPid());
-//      return true;
-//    default:
-//      return super.onOptionsItemSelected(item);
-//    }
-//  }
 }

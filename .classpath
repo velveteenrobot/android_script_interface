@@ -5,7 +5,6 @@
 	<classpathentry kind="lib" path="/u/selliott/.m2/repository/org/apache/commons/com.springsource.org.apache.commons.httpclient/3.1.0/com.springsource.org.apache.commons.httpclient-3.1.0.jar"/>
 	<classpathentry kind="lib" path="/u/selliott/.m2/repository/com/google/guava/org.ros.rosjava.guava/r07/org.ros.rosjava.guava-r07.jar"/>
 	<classpathentry kind="lib" path="/u/selliott/.ros/rosjava/lib/org.ros.rosjava.tf-0.0.0.jar"/>
-	<classpathentry kind="lib" path="/u/selliott/ROS_DIR/rosjava_core/apache_commons_util/target/org.ros.rosjava.ws-commons-util-1.0.2.jar"/>
 	<classpathentry kind="lib" path="/u/selliott/.ros/rosjava/lib/org.ros.rosjava.pr2_msgs-0.0.0.jar"/>
 	<classpathentry kind="lib" path="/u/selliott/.ros/rosjava/lib/org.ros.rosjava.std_msgs-0.0.0.jar"/>
 	<classpathentry kind="lib" path="/u/selliott/.m2/repository/org/jboss/netty/netty/3.2.4.Final/netty-3.2.4.Final.jar"/>
@@ -15,7 +14,6 @@
 	<classpathentry kind="lib" path="/u/selliott/.m2/repository/dnsjava/org.ros.rosjava.dnsjava/2.1.1/org.ros.rosjava.dnsjava-2.1.1.jar"/>
 	<classpathentry kind="lib" path="/u/selliott/.ros/rosjava/lib/org.ros.rosjava.dynamic_reconfigure-0.0.0.jar"/>
 	<classpathentry kind="lib" path="/u/selliott/.ros/rosjava/lib/org.ros.rosjava.test_ros-0.0.0.jar"/>
-	<classpathentry kind="lib" path="/u/selliott/ROS_DIR/rosjava_core/actionlib_java/target/org.ros.rosjava.actionlib_java-0.0.0.jar"/>
 	<classpathentry kind="lib" path="/u/selliott/.ros/rosjava/lib/org.ros.rosjava.topic_tools-0.0.0.jar"/>
 	<classpathentry kind="lib" path="/u/selliott/ROS_DIR/rosjava_core/rosjava_bootstrap/target/org.ros.rosjava.rosjava_bootstrap-0.0.0.jar"/>
 	<classpathentry kind="lib" path="/u/selliott/.ros/rosjava/lib/org.ros.rosjava.rosgraph_msgs-0.0.0.jar"/>
