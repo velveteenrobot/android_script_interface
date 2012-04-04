@@ -56,6 +56,7 @@ import java.lang.String;
 import java.util.Timer;
 import java.util.TimerTask;
 import android.widget.Button;
+import android.widget.EditText;
 
 import program_queue.Program;
 /*
