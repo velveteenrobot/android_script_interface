@@ -39,13 +39,15 @@ import org.ros.message.trajectory_msgs.JointTrajectoryPoint;
 import java.util.ArrayList;
 import org.ros.message.Duration;
 
-
 import android.content.Intent;
 import android.view.View.OnClickListener;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
 
+import org.ros.service.program_queue.Login;
+import org.ros.service.program_queue.Logout;
+import org.ros.service.program_queue.CreateUser;
 /**
  * @author damonkohler@google.com (Damon Kohler)
  * @author pratkanis@willowgarage.com (Tony Pratkanis)
@@ -57,7 +59,7 @@ public class LoginActivity extends RosAppActivity {
   private Button login_btn;
   private Button cancel_btn;
   private Button newuser_btn;
-  private String token = "token";
+  private int token = 0;
 
   /** Called when the activity is first created. */
   @Override
@@ -88,7 +90,42 @@ public class LoginActivity extends RosAppActivity {
       public void onClick(View v) {
         //Service call to Login 
         //get token back, switch activities
-        if (token == "token") {
+        final String username = username_field.getText().toString();
+        final Sring password = pw_field.getText().toString();
+        if (username != "" && password != "") {
+        Log.i("LoginActivity", "Run: Login");
+        try {
+          ServiceClient<Login.Request, Login.Response> appServiceClient =
+            getNode().newServiceClient("/program_queue/login", "program_queue/Login");  //TODO: fix package
+          Login.Request appRequest = new Login.Request();
+          appRequest.name = username_field.getText().toString();
+          appRequest.password = pw_field.getText().toString();
+          appServiceClient.call(appRequest, new ServiceResponseListener<Login.Response>() {
+              @Override 
+              public void onSuccess(Login.Response message) {
+                Toast.makeText(LoginActivity.this, "Login!", Toast.LENGTH_LONG).show();
+                //Intent intent = getPackageManager().getLaunchIntentForPackage("org.ros.android.scriptinterface.ScriptInterface");
+                Intent intent = new Intent(LoginActivity.this, ScriptInterface.class);
+                token = (int) message.token;
+                intent.putExtra("username", username);
+                intent.putExtra("token", token);
+                intent.putExtra("is_admin", message.is_admin);
+                intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+                startActivityForResult(intent, 0);
+                finish();
+              }  
+
+              @Override 
+              public void onFailure(RemoteException e) {
+                //TODO: SHOULD ERROR
+                Log.e("LoginActivity", e.toString());
+              }
+          });
+        } catch (Exception e) {
+          //TODO: should error
+          Log.e("LoginActivity", e.toString());
+        }
+        if (token != null) {
           Toast.makeText(LoginActivity.this, "Login!", Toast.LENGTH_LONG).show();
           //Intent intent = getPackageManager().getLaunchIntentForPackage("org.ros.android.scriptinterface.ScriptInterface");
           Intent intent = new Intent(LoginActivity.this, ScriptInterface.class);
@@ -96,12 +133,41 @@ public class LoginActivity extends RosAppActivity {
           startActivityForResult(intent, 0);
           finish();
         }
+      } else {
+        // dialog "must provide password and username"
       }
     });
     newuser_btn.setOnClickListener(new OnClickListener() {
       @Override
       public void onClick(View v) {
         //Service call to CreateUser
+        String username = username_field.getText().toString();
+        STring password = pw_field.getText().toString();
+        if (username != "" && password != "") {
+        Log.i("LoginActivity", "Run: CreateUser");
+        try {
+          ServiceClient<CreateUser.Request, CreateUser.Response> appServiceClient =
+            getNode().newServiceClient("/program_queue/createUser", "program_queue/CreateUser");  //TODO: fix package
+          CreateUser.Request appRequest = new CreateUser.Request();
+          appRequest.name = username_field.getText().toString();
+          appRequest.password = pw_field.getText().toString();
+          appServiceClient.call(appRequest, new ServiceResponseListener<CreateUser.Response>() {
+              @Override 
+              public void onSuccess(CreateUser.Response message) {
+                current_program = message.program;
+                program_field.setText(message.program.code);
+              }
+
+              @Override 
+              public void onFailure(RemoteException e) {
+                //dialog about user with same name exists (most likely)
+                Log.e("LoginActivity", e.toString());
+              }
+          });
+        } catch (Exception e) {
+          //TODO: should error
+          Log.e("LoginActivity", e.toString());
+        }
         if (token == "token") {
           //Intent intent = getPackageManager().getLaunchIntentForPackage("org.ros.android.scriptinterface.ScriptInterface");
           Intent intent = new Intent(v.getContext(), ScriptInterface.class);
@@ -109,6 +175,9 @@ public class LoginActivity extends RosAppActivity {
           startActivity(intent); 
           finish();
         }
+      } else {
+        //dialog about having name and password
+      }
       }
     });
   }
@@ -163,42 +232,7 @@ public class LoginActivity extends RosAppActivity {
 //  }
 
 
-  /*
-  //Callbacks
-  public void highFiveLeft(View view) {
-    runService("/pr2_props/high_five_left");
-  }
-  public void highFiveRight(View view) {
-    runService("/pr2_props/high_five_right");
-  }
-  public void highFiveDouble(View view) { 
-    runService("/pr2_props/high_five_double");
-  }
-  public void lowFiveLeft(View view) { 
-    runService("/pr2_props/low_five_left");
-  }
-  public void lowFiveRight(View view) { 
-    runService("/pr2_props/low_five_right");
-  }
-  public void poundLeft(View view) { 
-    runService("/pr2_props/pound_left");
-  }
-  public void poundRight(View view) { 
-    runService("/pr2_props/low_five_right");
-  }
-  public void poundDouble(View view) { 
-    runService("/pr2_props/pound_double");
-  }
-  public void hug(View view) { 
-    runService("/pr2_props/hug");
-  }
-  public void raiseSpine(View view) { 
-    spineHeight = 0.31;
-  }
-  public void lowerSpine(View view) { 
-    spineHeight = 0.0;
-  }
-*/ 
+
 
   /* Creates the menu for the options */
   //@Override
