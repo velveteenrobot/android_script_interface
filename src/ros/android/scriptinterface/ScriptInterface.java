@@ -83,7 +83,7 @@ import org.ros.service.program_queue.UpdateProgram;
  */
 public class ScriptInterface extends RosAppActivity {
   
-  private static final int token = 0;
+  private static final int token = null;
   private static final int EXISTING_PROGRAM_DIALOG = 1;
   private static final int PYTHON = 1;
   private static final int PUPPETSCRIPT = 0;
@@ -99,8 +99,22 @@ public class ScriptInterface extends RosAppActivity {
   /** Called when the activity is first created. */
   @Override
   public void onCreate(Bundle savedInstanceState) {
-    if (getIntent().hasExtra("stop")) {
+
+    Intent startingIntent = getIntent();
+    if (startingIntent.hasExtra("token")) {
+      token = startingIntent.getIntExtra("token");
+    } else {
       finish();
+    }
+    if (startingIntent.hasExtra("stop")) {
+      finish();
+    }
+    if (startingIntent.hasExtra("username")) {
+      username = startingIntent.getStringExtra("username");
+    }
+
+    if (startingIntent.hasExtra("is_admin")) {
+      is_admin = startingIntent.getBooleanExtra("is_admin");
     }
     setDefaultAppName("pr2_props_app/pr2_props");
     setDashboardResource(R.id.top_bar);
@@ -174,7 +188,7 @@ public class ScriptInterface extends RosAppActivity {
     Log.i("ScriptInterface", "Run: GetProgram");
     try {
       ServiceClient<GetProgram.Request, GetProgram.Response> appServiceClient =
-        getNode().newServiceClient("/program_queue/getProgram", "program_queue/GetProgram");  //TODO: fix package
+        getNode().newServiceClient("/program_queue/getProgram", "program_queue/GetProgram");  
       GetProgram.Request appRequest = new GetProgram.Request();
       appRequest.id = token;
       appServiceClient.call(appRequest, new ServiceResponseListener<GetProgram.Response>() {
@@ -198,7 +212,7 @@ public class ScriptInterface extends RosAppActivity {
     Log.i("ScriptInterface", "Run: GetMyPrograms");
     try {
       ServiceClient<GetMyPrograms.Request, GetMyPrograms.Response> appServiceClient =
-        getNode().newServiceClient("/program_queue/getMyPrograms", "program_queue/GetMyPrograms");  //TODO: fix package
+        getNode().newServiceClient("/program_queue/getMyPrograms", "program_queue/GetMyPrograms");  
       GetMyPrograms.Request appRequest = new GetMyPrograms.Request();
       appRequest.token = token;
       appServiceClient.call(appRequest, new ServiceResponseListener<GetMyPrograms.Response>() {
@@ -222,7 +236,7 @@ public class ScriptInterface extends RosAppActivity {
     Log.i("ScriptInterface", "Run: UpdateProgram");
     try {
       ServiceClient<UpdateProgram.Request, UpdateProgram.Response> appServiceClient =
-        getNode().newServiceClient("/program_queue/updateProgram", "program_queue/UpdateProgram");  //TODO: fix package
+        getNode().newServiceClient("/program_queue/updateProgram", "program_queue/UpdateProgram");  
       UpdateProgram.Request appRequest = new UpdateProgram.Request();
       appRequest.token = token;
       appRequest.program = current_program;
@@ -251,7 +265,7 @@ public class ScriptInterface extends RosAppActivity {
     Log.i("ScriptInterface", "Run: CreateProgram");
     try {
       ServiceClient<CreateProgram.Request, CreateProgram.Response> appServiceClient =
-        getNode().newServiceClient("/program_queue/createProgram", "program_queue/CreateProgram");  //TODO: fix package
+        getNode().newServiceClient("/program_queue/createProgram", "program_queue/CreateProgram"); 
       CreateProgram.Request appRequest = new CreateProgram.Request();
       appRequest.token = token;
       appServiceClient.call(appRequest, new ServiceResponseListener<CreateProgram.Response>() {
@@ -306,7 +320,7 @@ public class ScriptInterface extends RosAppActivity {
     switch (id) {
       case EXISTING_PROGRAM_DIALOG:
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
-        if (program_names.length>0) { //check out how to get size of that list
+        if (program_names.length>0) { 
               builder.setTitle("Select a Progam to Edit");
           builder.setSingleChoiceItems(program_names, 0, null)
            .setPositiveButton("Edit Selected", new DialogInterface.OnClickListener() {
@@ -351,6 +365,7 @@ public class ScriptInterface extends RosAppActivity {
   public boolean onOptionsItemSelected(MenuItem item) {
     int id = item.getItemId();
     if (id == R.id.logout) {
+      
       Intent intent = new Intent(this, LoginActivity.class);
       intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
       startActivity(intent);
@@ -361,6 +376,32 @@ public class ScriptInterface extends RosAppActivity {
     }
   }
   
+  public void logout() {
+    Log.i("ScriptInterface", "Run: Logout");
+    try {
+      ServiceClient<Logout.Request, Logout.Response> appServiceClient =
+        getNode().newServiceClient("/program_queue/logout", "program_queue/Logout");  
+      Logout.Request appRequest = new Logout.Request();
+      appRequest.token = token;
+      appServiceClient.call(appRequest, new ServiceResponseListener<Logout.Response>() {
+          @Override public void onSuccess(Logout.Response message) {
+            Intent intent = new Intent(this, LoginActivity.class);
+            intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+            startActivity(intent);
+            finish();
+          }
+
+          @Override public void onFailure(RemoteException e) {
+            //TODO: SHOULD ERROR
+            Log.e("ScriptInterface", e.toString());
+          }
+        });
+    } catch (Exception e) {
+      //TODO: should error
+      Log.e("ScriptInterface", e.toString());
+    }
+  }
+
   public void showProgram(ProgramInfo info) {
     //get actual program from program info 
     //switch program type field, enter program name, put text in edit text
@@ -398,7 +439,7 @@ public class ScriptInterface extends RosAppActivity {
       Log.i("ScriptInterface", "Run: QueueProgram");
       try {
         ServiceClient<QueueProgram.Request, QueueProgram.Response> appServiceClient =
-          getNode().newServiceClient("/program_queue/queueProgram", "program_queue/QueueProgram");  //TODO: fix package
+          getNode().newServiceClient("/program_queue/queueProgram", "program_queue/QueueProgram");  
         QueueProgram.Request appRequest = new QueueProgram.Request();
         appRequest.token = token;
         appServiceClient.call(appRequest, new ServiceResponseListener<QueueProgram.Response>() {
