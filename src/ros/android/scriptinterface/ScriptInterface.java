@@ -392,22 +392,51 @@ public class ScriptInterface extends RosAppActivity {
     }
   }
 
-  public class MyOnItemSelectedListener implements AdapterView.OnItemSelectedListener {
+  public void addToQueue() {
+    //check if saved, if not prompt to save
+    if (current_program.code == program_field.getText()) {
+      Log.i("ScriptInterface", "Run: QueueProgram");
+      try {
+        ServiceClient<QueueProgram.Request, QueueProgram.Response> appServiceClient =
+          getNode().newServiceClient("/program_queue/queueProgram", "program_queue/QueueProgram");  //TODO: fix package
+        appRequest.token = token;
+        QueueProgram.Request appRequest = new QueueProgram.Request();
+        appServiceClient.call(appRequest, new ServiceResponseListener<QueueProgram.Response>() {
+            @Override public void onSuccess(QueueProgram.Response message) {
+              //tell user which position their item is in the queue, message.queue_position
+            }
 
+            @Override public void onFailure(RemoteException e) {
+              //TODO: SHOULD ERROR
+              Log.e("ScriptInterface", e.toString());
+            }
+          });
+      } catch (Exception e) {
+        //TODO: should error
+        Log.e("ScriptInterface", e.toString());
+      }
+    } else {
+      //prompt to save
+      saveProgram(); 
+    }  
+  } 
+
+  public class MyOnItemSelectedListener implements AdapterView.OnItemSelectedListener {
+    @Override
     public void onItemSelected(AdapterView<?> parent,
         View view, int pos, long id) {
-      //Toast.makeText(parent.getContext(), "Arm is: " +
-      //    parent.getItemAtPosition(pos).toString(), Toast.LENGTH_LONG).show();
-          //TableLayout rightArm = (TableLayout) view.findViewById(R.id.right_arm_table);
-          //TextView leftArmTitle = (TextView) view.findViewById(R.id.left_arm_title);
           if (pos == 0) {
             type = PYTHON;
-            }
           } else if (pos == 1) {
             type = PUPPETSCRIPT;
           }
-
     }
+    @Override
+    public void onNothingSelected(AdapterView parent) {
+      // Do nothing.
+    }
+
+  }
 
 
 
