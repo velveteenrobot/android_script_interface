@@ -58,25 +58,25 @@ import java.util.TimerTask;
 import android.widget.Button;
 import android.widget.EditText;
 
-import program_queue.Program;
-/*
-import pr2_hack_the_future.program_queue.msg.ProgramInfo;
-import pr2_hack_the_future.program_queue.msg.Output;
-import pr2_hack_the_future.program_queue.srv.GetProgram;
-import pr2_hack_the_future.program_queue.srv.GetMyPrograms;
-import pr2_hack_the_future.program_queue.srv.GetPrograms;
-import pr2_hack_the_future.program_queue.srv.Login;
-import pr2_hack_the_future.program_queue.srv.Logout;
-import pr2_hack_the_future.program_queue.srv.ClearQueue;
-import pr2_hack_the_future.program_queue.srv.CreateUser;
-import pr2_hack_the_future.program_queue.srv.CreateProgram;
-import pr2_hack_the_future.program_queue.srv.DequeueProgram;
-import pr2_hack_the_future.program_queue.srv.GetOutput;
-import pr2_hack_the_future.program_queue.srv.GetQueue;
-import pr2_hack_the_future.program_queue.srv.QueueProgram;
-import pr2_hack_the_future.program_queue.srv.RunProgram;
-import pr2_hack_the_future.program_queue.srv.UpdateProgram;
-*/
+import org.ros.message.program_queue.Program;
+
+import org.ros.message.program_queue.ProgramInfo;
+import org.ros.message.program_queue.Output;
+import org.ros.service.program_queue.GetProgram;
+import org.ros.service.program_queue.GetMyPrograms;
+import org.ros.service.program_queue.GetPrograms;
+import org.ros.service.program_queue.Login;
+import org.ros.service.program_queue.Logout;
+import org.ros.service.program_queue.ClearQueue;
+import org.ros.service.program_queue.CreateUser;
+import org.ros.service.program_queue.CreateProgram;
+import org.ros.service.program_queue.DequeueProgram;
+import org.ros.service.program_queue.GetOutput;
+import org.ros.service.program_queue.GetQueue;
+import org.ros.service.program_queue.QueueProgram;
+import org.ros.service.program_queue.RunProgram;
+import org.ros.service.program_queue.UpdateProgram;
+
 /**
  * @author damonkohler@google.com (Damon Kohler)
  * @author pratkanis@willowgarage.com (Tony Pratkanis)
@@ -88,10 +88,13 @@ public class ScriptInterface extends RosAppActivity {
   private static final int PYTHON = 1;
   private static final int PUPPETSCRIPT = 0;
   private ProgressDialog progress;
-  //private ArrayList<ProgramInfo> my_programs;
+  private ArrayList<ProgramInfo> my_programs;
   private EditText name_field;
   private Spinner spinner;
   private EditText program_field;
+  private Program current_program = null;
+  private String username;
+  private int type;
 
   /** Called when the activity is first created. */
   @Override
@@ -128,6 +131,7 @@ public class ScriptInterface extends RosAppActivity {
             this, R.array.program_type, android.R.layout.simple_spinner_item);
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         spinner.setAdapter(adapter);
+        spinner.setOnItemSelectedListener(new MyOnItemSelectedListener());
 
        TabHost tabHost=(TabHost)findViewById(R.id.tabHost);
         tabHost.setup();
@@ -165,15 +169,17 @@ public class ScriptInterface extends RosAppActivity {
     super.onNodeDestroy(node);
   }
   
-  /*
+ 
   private void getProgram(int id) {
     Log.i("ScriptInterface", "Run: GetProgram");
     try {
       ServiceClient<GetProgram.Request, GetProgram.Response> appServiceClient =
-        getNode().newServiceClient(service, "package/GetProgram");  //TODO: fix package
+        getNode().newServiceClient("/program_queue/getProgram", "program_queue/GetProgram");  //TODO: fix package
       GetProgram.Request appRequest = new GetProgram.Request();
+      appRequest.id = token;
       appServiceClient.call(appRequest, new ServiceResponseListener<GetProgram.Response>() {
           @Override public void onSuccess(GetProgram.Response message) {
+            current_program = message.program;
             program_field.setText(message.program.code);
           }
 
@@ -192,8 +198,9 @@ public class ScriptInterface extends RosAppActivity {
     Log.i("ScriptInterface", "Run: GetMyPrograms");
     try {
       ServiceClient<GetMyPrograms.Request, GetMyPrograms.Response> appServiceClient =
-        getNode().newServiceClient(service, "package/GetMyPrograms");  //TODO: fix package
+        getNode().newServiceClient("/program_queue/getMyPrograms", "program_queue/GetMyPrograms");  //TODO: fix package
       GetMyPrograms.Request appRequest = new GetMyPrograms.Request();
+      appRequest.token = token;
       appServiceClient.call(appRequest, new ServiceResponseListener<GetMyPrograms.Response>() {
           @Override public void onSuccess(GetMyPrograms.Response message) {
             showDialog(EXISTING_PROGRAM_DIALOG);
@@ -210,7 +217,59 @@ public class ScriptInterface extends RosAppActivity {
       Log.e("ScriptInterface", e.toString());
     }
   }
-  */
+
+  private void updateProgram() {
+    Log.i("ScriptInterface", "Run: UpdateProgram");
+    try {
+      ServiceClient<UpdateProgram.Request, UpdateProgram.Response> appServiceClient =
+        getNode().newServiceClient("/program_queue/updateProgram", "program_queue/UpdateProgram");  //TODO: fix package
+      appRequest.token = token;
+      appRequest.program = current_program;
+      UpdateProgram.Request appRequest = new UpdateProgram.Request();
+      appServiceClient.call(appRequest, new ServiceResponseListener<UpdateProgram.Response>() {
+          @Override public void onSuccess(UpdateProgram.Response message) {
+          }
+
+          @Override public void onFailure(RemoteException e) {
+            //TODO: SHOULD ERROR
+            Log.e("ScriptInterface", e.toString());
+          }
+        });
+    } catch (Exception e) {
+      //TODO: should error
+      Log.e("ScriptInterface", e.toString());
+    }
+    
+  }
+ 
+  private void createProgram() {
+    current_program.code = program_field.getText();
+    current_program.info.name = name_field.getText();
+    current_program.info.type = type;
+    current_program.info.owner = username;
+    
+    Log.i("ScriptInterface", "Run: CreateProgram");
+    try {
+      ServiceClient<CreateProgram.Request, CreateProgram.Response> appServiceClient =
+        getNode().newServiceClient("/program_queue/createProgram", "program_queue/CreateProgram");  //TODO: fix package
+      appRequest.token = token;
+      CreateProgram.Request appRequest = new CreateProgram.Request();
+      appServiceClient.call(appRequest, new ServiceResponseListener<CreateProgram.Response>() {
+          @Override public void onSuccess(CreateProgram.Response message) {
+            current_program.info.id = message.id;
+            updateProgram();
+          }
+
+          @Override public void onFailure(RemoteException e) {
+            //TODO: SHOULD ERROR
+            Log.e("ScriptInterface", e.toString());
+          }
+        });
+    } catch (Exception e) {
+      //TODO: should error
+      Log.e("ScriptInterface", e.toString());
+    }
+  }
 
   @Override 
   public void onBackPressed() {
@@ -254,7 +313,7 @@ public class ScriptInterface extends RosAppActivity {
              public void onClick(DialogInterface dialog, int whichButton) {
                 dialog.dismiss();
                 int selectedPosition = ((AlertDialog)dialog).getListView().getCheckedItemPosition();
-                showProgram(my_programs[selectedPosition]);
+                showProgram(my_programs.get(selectedPosition));
              }
            });
          builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
@@ -301,7 +360,7 @@ public class ScriptInterface extends RosAppActivity {
       return super.onOptionsItemSelected(item);
     }
   }
-  /*
+  
   public void showPrograms(ProgramInfo info) {
     //get actual program from program info 
     //switch program type field, enter program name, put text in edit text
@@ -309,10 +368,47 @@ public class ScriptInterface extends RosAppActivity {
     name_field.setText(info.name);
     if (info.type == PYTHON) {
       spinner.setSelection(0);
+      type = PYTHON;
     } else if (info.type == PUPPETSCRIPT) {
       spinner.setSelection(1);
+      type = PUPPETSCRIPT;
     }
      
-  }*/
+  }
+
+  public void saveProgram() {
+    if (current_program != null) {
+      if (name_field.getText() == current_program.name) {
+        updateProgram();
+      } else if (name_field.getText() == "") {
+        //alert dialog about needing name
+      } else {
+        //you are about to create a new program
+        createProgram();
+      }
+      
+    } else {
+      createProgram();
+    }
+  }
+
+  public class MyOnItemSelectedListener implements AdapterView.OnItemSelectedListener {
+
+    public void onItemSelected(AdapterView<?> parent,
+        View view, int pos, long id) {
+      //Toast.makeText(parent.getContext(), "Arm is: " +
+      //    parent.getItemAtPosition(pos).toString(), Toast.LENGTH_LONG).show();
+          //TableLayout rightArm = (TableLayout) view.findViewById(R.id.right_arm_table);
+          //TextView leftArmTitle = (TextView) view.findViewById(R.id.left_arm_title);
+          if (pos == 0) {
+            type = PYTHON;
+            }
+          } else if (pos == 1) {
+            type = PUPPETSCRIPT;
+          }
+
+    }
+
+
 
 }
