@@ -83,7 +83,7 @@ import org.ros.service.program_queue.UpdateProgram;
  */
 public class ScriptInterface extends RosAppActivity {
   
-  private static final int token;
+  private static final int token = 0;
   private static final int EXISTING_PROGRAM_DIALOG = 1;
   private static final int PYTHON = 1;
   private static final int PUPPETSCRIPT = 0;
@@ -170,7 +170,7 @@ public class ScriptInterface extends RosAppActivity {
   }
   
  
-  private void getProgram(int id) {
+  private void getProgram(long id) {
     Log.i("ScriptInterface", "Run: GetProgram");
     try {
       ServiceClient<GetProgram.Request, GetProgram.Response> appServiceClient =
@@ -223,9 +223,9 @@ public class ScriptInterface extends RosAppActivity {
     try {
       ServiceClient<UpdateProgram.Request, UpdateProgram.Response> appServiceClient =
         getNode().newServiceClient("/program_queue/updateProgram", "program_queue/UpdateProgram");  //TODO: fix package
+      UpdateProgram.Request appRequest = new UpdateProgram.Request();
       appRequest.token = token;
       appRequest.program = current_program;
-      UpdateProgram.Request appRequest = new UpdateProgram.Request();
       appServiceClient.call(appRequest, new ServiceResponseListener<UpdateProgram.Response>() {
           @Override public void onSuccess(UpdateProgram.Response message) {
           }
@@ -243,17 +243,17 @@ public class ScriptInterface extends RosAppActivity {
   }
  
   private void createProgram() {
-    current_program.code = program_field.getText();
-    current_program.info.name = name_field.getText();
-    current_program.info.type = type;
+    current_program.code = program_field.getText().toString();
+    current_program.info.name = name_field.getText().toString();
+    current_program.info.type = (byte) type;
     current_program.info.owner = username;
     
     Log.i("ScriptInterface", "Run: CreateProgram");
     try {
       ServiceClient<CreateProgram.Request, CreateProgram.Response> appServiceClient =
         getNode().newServiceClient("/program_queue/createProgram", "program_queue/CreateProgram");  //TODO: fix package
-      appRequest.token = token;
       CreateProgram.Request appRequest = new CreateProgram.Request();
+      appRequest.token = token;
       appServiceClient.call(appRequest, new ServiceResponseListener<CreateProgram.Response>() {
           @Override public void onSuccess(CreateProgram.Response message) {
             current_program.info.id = message.id;
@@ -361,10 +361,10 @@ public class ScriptInterface extends RosAppActivity {
     }
   }
   
-  public void showPrograms(ProgramInfo info) {
+  public void showProgram(ProgramInfo info) {
     //get actual program from program info 
     //switch program type field, enter program name, put text in edit text
-    Program program = getProgram(info.id); 
+    getProgram(info.id); 
     name_field.setText(info.name);
     if (info.type == PYTHON) {
       spinner.setSelection(0);
@@ -378,9 +378,9 @@ public class ScriptInterface extends RosAppActivity {
 
   public void saveProgram() {
     if (current_program != null) {
-      if (name_field.getText() == current_program.name) {
+      if (name_field.getText().toString() == current_program.info.name) {
         updateProgram();
-      } else if (name_field.getText() == "") {
+      } else if (name_field.getText().toString() == "") {
         //alert dialog about needing name
       } else {
         //you are about to create a new program
@@ -394,13 +394,13 @@ public class ScriptInterface extends RosAppActivity {
 
   public void addToQueue() {
     //check if saved, if not prompt to save
-    if (current_program.code == program_field.getText()) {
+    if (current_program.code == program_field.getText().toString()) {
       Log.i("ScriptInterface", "Run: QueueProgram");
       try {
         ServiceClient<QueueProgram.Request, QueueProgram.Response> appServiceClient =
           getNode().newServiceClient("/program_queue/queueProgram", "program_queue/QueueProgram");  //TODO: fix package
-        appRequest.token = token;
         QueueProgram.Request appRequest = new QueueProgram.Request();
+        appRequest.token = token;
         appServiceClient.call(appRequest, new ServiceResponseListener<QueueProgram.Response>() {
             @Override public void onSuccess(QueueProgram.Response message) {
               //tell user which position their item is in the queue, message.queue_position
