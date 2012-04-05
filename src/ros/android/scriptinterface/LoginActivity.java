@@ -90,59 +90,15 @@ public class LoginActivity extends RosAppActivity {
       public void onClick(View v) {
         //Service call to Login 
         //get token back, switch activities
-        final String username = username_field.getText().toString();
-        final Sring password = pw_field.getText().toString();
-        if (username != "" && password != "") {
-        Log.i("LoginActivity", "Run: Login");
-        try {
-          ServiceClient<Login.Request, Login.Response> appServiceClient =
-            getNode().newServiceClient("/program_queue/login", "program_queue/Login");  //TODO: fix package
-          Login.Request appRequest = new Login.Request();
-          appRequest.name = username_field.getText().toString();
-          appRequest.password = pw_field.getText().toString();
-          appServiceClient.call(appRequest, new ServiceResponseListener<Login.Response>() {
-              @Override 
-              public void onSuccess(Login.Response message) {
-                Toast.makeText(LoginActivity.this, "Login!", Toast.LENGTH_LONG).show();
-                //Intent intent = getPackageManager().getLaunchIntentForPackage("org.ros.android.scriptinterface.ScriptInterface");
-                Intent intent = new Intent(LoginActivity.this, ScriptInterface.class);
-                token = (int) message.token;
-                intent.putExtra("username", username);
-                intent.putExtra("token", token);
-                intent.putExtra("is_admin", message.is_admin);
-                intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
-                startActivityForResult(intent, 0);
-                finish();
-              }  
-
-              @Override 
-              public void onFailure(RemoteException e) {
-                //TODO: SHOULD ERROR
-                Log.e("LoginActivity", e.toString());
-              }
-          });
-        } catch (Exception e) {
-          //TODO: should error
-          Log.e("LoginActivity", e.toString());
-        }
-        if (token != null) {
-          Toast.makeText(LoginActivity.this, "Login!", Toast.LENGTH_LONG).show();
-          //Intent intent = getPackageManager().getLaunchIntentForPackage("org.ros.android.scriptinterface.ScriptInterface");
-          Intent intent = new Intent(LoginActivity.this, ScriptInterface.class);
-          intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
-          startActivityForResult(intent, 0);
-          finish();
-        }
-      } else {
-        // dialog "must provide password and username"
-      }
+        login();
+      } 
     });
     newuser_btn.setOnClickListener(new OnClickListener() {
       @Override
       public void onClick(View v) {
         //Service call to CreateUser
         String username = username_field.getText().toString();
-        STring password = pw_field.getText().toString();
+        String password = pw_field.getText().toString();
         if (username != "" && password != "") {
         Log.i("LoginActivity", "Run: CreateUser");
         try {
@@ -154,8 +110,7 @@ public class LoginActivity extends RosAppActivity {
           appServiceClient.call(appRequest, new ServiceResponseListener<CreateUser.Response>() {
               @Override 
               public void onSuccess(CreateUser.Response message) {
-                current_program = message.program;
-                program_field.setText(message.program.code);
+               login();
               }
 
               @Override 
@@ -167,13 +122,6 @@ public class LoginActivity extends RosAppActivity {
         } catch (Exception e) {
           //TODO: should error
           Log.e("LoginActivity", e.toString());
-        }
-        if (token == "token") {
-          //Intent intent = getPackageManager().getLaunchIntentForPackage("org.ros.android.scriptinterface.ScriptInterface");
-          Intent intent = new Intent(v.getContext(), ScriptInterface.class);
-          intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
-          startActivity(intent); 
-          finish();
         }
       } else {
         //dialog about having name and password
@@ -224,6 +172,56 @@ public class LoginActivity extends RosAppActivity {
       //intent.setFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
       startActivity(intent);
   }
+
+  public void login() {
+        final String username = username_field.getText().toString();
+        final String password = pw_field.getText().toString();
+        if (username != "" && password != "") {
+        Log.i("LoginActivity", "Run: Login");
+        try {
+          ServiceClient<Login.Request, Login.Response> appServiceClient =
+            getNode().newServiceClient("/program_queue/login", "program_queue/Login");  //TODO: fix package
+          Login.Request appRequest = new Login.Request();
+          appRequest.name = username_field.getText().toString();
+          appRequest.password = pw_field.getText().toString();
+          appServiceClient.call(appRequest, new ServiceResponseListener<Login.Response>() {
+              @Override 
+              public void onSuccess(Login.Response message) {
+                Toast.makeText(LoginActivity.this, "Login!", Toast.LENGTH_LONG).show();
+                //Intent intent = getPackageManager().getLaunchIntentForPackage("org.ros.android.scriptinterface.ScriptInterface");
+                Intent intent = new Intent(LoginActivity.this, ScriptInterface.class);
+                token = (int) message.token;
+                intent.putExtra("username", username);
+                intent.putExtra("token", message.token);
+                intent.putExtra("is_admin", message.is_admin);
+                intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+                startActivityForResult(intent, 0);
+                finish();
+              }  
+
+              @Override 
+              public void onFailure(RemoteException e) {
+                //TODO: SHOULD ERROR
+                Log.e("LoginActivity", e.toString());
+              }
+          });
+        } catch (Exception e) {
+          //TODO: should error
+          Log.e("LoginActivity", e.toString());
+        }
+        if (token != 0) {
+          Toast.makeText(LoginActivity.this, "Login!", Toast.LENGTH_LONG).show();
+          //Intent intent = getPackageManager().getLaunchIntentForPackage("org.ros.android.scriptinterface.ScriptInterface");
+          Intent intent = new Intent(LoginActivity.this, ScriptInterface.class);
+          intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+          startActivityForResult(intent, 0);
+          finish();
+        }
+        } else {
+        // dialog "must provide password and username"
+        } 
+  }
+
 //  @Override
 //  public void onSaveInstanceState(Bundle savedInstanceState) {
 //    //String s = username_field.getText();

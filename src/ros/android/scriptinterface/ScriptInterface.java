@@ -83,7 +83,7 @@ import org.ros.service.program_queue.UpdateProgram;
  */
 public class ScriptInterface extends RosAppActivity {
   
-  private static final int token = null;
+  private int token = 0;
   private static final int EXISTING_PROGRAM_DIALOG = 1;
   private static final int PYTHON = 1;
   private static final int PUPPETSCRIPT = 0;
@@ -95,6 +95,7 @@ public class ScriptInterface extends RosAppActivity {
   private Program current_program = null;
   private String username;
   private int type;
+  private boolean is_admin = false;
 
   /** Called when the activity is first created. */
   @Override
@@ -102,7 +103,7 @@ public class ScriptInterface extends RosAppActivity {
 
     Intent startingIntent = getIntent();
     if (startingIntent.hasExtra("token")) {
-      token = startingIntent.getIntExtra("token");
+      token = startingIntent.getIntExtra("token", 0);
     } else {
       finish();
     }
@@ -114,7 +115,7 @@ public class ScriptInterface extends RosAppActivity {
     }
 
     if (startingIntent.hasExtra("is_admin")) {
-      is_admin = startingIntent.getBooleanExtra("is_admin");
+      is_admin = startingIntent.getBooleanExtra("is_admin", false);
     }
     setDefaultAppName("pr2_props_app/pr2_props");
     setDashboardResource(R.id.top_bar);
@@ -385,7 +386,7 @@ public class ScriptInterface extends RosAppActivity {
       appRequest.token = token;
       appServiceClient.call(appRequest, new ServiceResponseListener<Logout.Response>() {
           @Override public void onSuccess(Logout.Response message) {
-            Intent intent = new Intent(this, LoginActivity.class);
+            Intent intent = new Intent(ScriptInterface.this, LoginActivity.class);
             intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
             startActivity(intent);
             finish();
