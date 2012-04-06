@@ -59,7 +59,6 @@ import android.widget.Button;
 import android.widget.EditText;
 
 import org.ros.message.program_queue.Program;
-
 import org.ros.message.program_queue.ProgramInfo;
 import org.ros.message.program_queue.Output;
 import org.ros.service.program_queue.GetProgram;
