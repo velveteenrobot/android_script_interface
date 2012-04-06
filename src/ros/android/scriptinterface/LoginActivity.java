@@ -104,7 +104,7 @@ public class LoginActivity extends RosAppActivity {
         Log.i("LoginActivity", "Run: CreateUser");
         try {
           ServiceClient<CreateUser.Request, CreateUser.Response> appServiceClient =
-            getNode().newServiceClient("/program_queue/createUser", "program_queue/CreateUser");  //TODO: fix package
+            getNode().newServiceClient("/create_user", "program_queue/CreateUser");  //TODO: fix package
           CreateUser.Request appRequest = new CreateUser.Request();
           appRequest.name = username_field.getText().toString();
           appRequest.password = pw_field.getText().toString();
@@ -181,14 +181,13 @@ public class LoginActivity extends RosAppActivity {
         Log.i("LoginActivity", "Run: Login");
         try {
           ServiceClient<Login.Request, Login.Response> appServiceClient =
-            getNode().newServiceClient("/program_queue/login", "program_queue/Login");  //TODO: fix package
+            getNode().newServiceClient("/login", "program_queue/Login");  //TODO: fix package
           Login.Request appRequest = new Login.Request();
           appRequest.name = username_field.getText().toString();
           appRequest.password = pw_field.getText().toString();
           appServiceClient.call(appRequest, new ServiceResponseListener<Login.Response>() {
               @Override 
               public void onSuccess(Login.Response message) {
-                Toast.makeText(LoginActivity.this, "Login!", Toast.LENGTH_LONG).show();
                 //Intent intent = getPackageManager().getLaunchIntentForPackage("org.ros.android.scriptinterface.ScriptInterface");
                 Intent intent = new Intent(LoginActivity.this, ScriptInterface.class);
                 token = (int) message.token;

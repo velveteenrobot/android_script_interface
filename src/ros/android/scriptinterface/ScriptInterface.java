@@ -131,7 +131,7 @@ public class ScriptInterface extends RosAppActivity {
             runOnUiThread(new Runnable() {
               @Override
               public void run() {
-                progress = ProgressDialog.show(ScriptInterface.this, "Loading", "Loading your programs...", true, false);
+                progress = ProgressDialog.show(ScriptInterface.this, "Loading", "Loading your programs...", true, true);
                 progress.setProgressStyle(ProgressDialog.STYLE_SPINNER);
               }
             });
