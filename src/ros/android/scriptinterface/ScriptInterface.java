@@ -95,6 +95,7 @@ public class ScriptInterface extends RosAppActivity {
   private String username;
   private int type;
   private boolean is_admin = false;
+  private ArrayList<ProgramInfo> program_queue;
 
   /** Called when the activity is first created. */
   @Override
@@ -128,6 +129,7 @@ public class ScriptInterface extends RosAppActivity {
           @Override
           public void onClick(View v) {
             //show Progress Dialog
+            getMyPrograms();
             runOnUiThread(new Runnable() {
               @Override
               public void run() {
@@ -183,6 +185,18 @@ public class ScriptInterface extends RosAppActivity {
     super.onNodeDestroy(node);
   }
   
+
+  private void stopProgress() {
+    final ProgressDialog temp = progress;
+    progress = null;
+    if (temp != null) {
+      runOnUiThread(new Runnable() {
+          public void run() {
+            temp.dismiss();
+          }});
+    }
+  }
+
  
   private void getProgram(long id) {
     Log.i("ScriptInterface", "Run: GetProgram");
@@ -208,7 +222,9 @@ public class ScriptInterface extends RosAppActivity {
     }
   }
 
-  private void getMyPrograms(String service) {
+  private void getQueue()
+
+  private void getMyPrograms() {
     Log.i("ScriptInterface", "Run: GetMyPrograms");
     try {
       ServiceClient<GetMyPrograms.Request, GetMyPrograms.Response> appServiceClient =
@@ -217,6 +233,7 @@ public class ScriptInterface extends RosAppActivity {
       appRequest.token = token;
       appServiceClient.call(appRequest, new ServiceResponseListener<GetMyPrograms.Response>() {
           @Override public void onSuccess(GetMyPrograms.Response message) {
+            stopProgress();
             showDialog(EXISTING_PROGRAM_DIALOG);
             my_programs = message.programs;
           }
