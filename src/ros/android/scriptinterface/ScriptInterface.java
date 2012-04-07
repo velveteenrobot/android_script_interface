@@ -82,7 +82,7 @@ import org.ros.service.program_queue.UpdateProgram;
  */
 public class ScriptInterface extends RosAppActivity {
   
-  private int token = 0;
+  private long token = 0;
   private static final int EXISTING_PROGRAM_DIALOG = 1;
   private static final int PYTHON = 1;
   private static final int PUPPETSCRIPT = 0;
@@ -103,7 +103,7 @@ public class ScriptInterface extends RosAppActivity {
 
     Intent startingIntent = getIntent();
     if (startingIntent.hasExtra("token")) {
-      token = startingIntent.getIntExtra("token", 0);
+      token = startingIntent.getLongExtra("token", 0);
     } else {
       finish();
     }
@@ -130,13 +130,13 @@ public class ScriptInterface extends RosAppActivity {
           public void onClick(View v) {
             //show Progress Dialog
             getMyPrograms();
-            runOnUiThread(new Runnable() {
-              @Override
-              public void run() {
-                progress = ProgressDialog.show(ScriptInterface.this, "Loading", "Loading your programs...", true, true);
-                progress.setProgressStyle(ProgressDialog.STYLE_SPINNER);
-              }
-            });
+            //runOnUiThread(new Runnable() {
+            //  @Override
+            //  public void run() {
+            //    progress = ProgressDialog.show(ScriptInterface.this, "Loading", "Loading your programs...", true, true);
+            //    progress.setProgressStyle(ProgressDialog.STYLE_SPINNER);
+            //  }
+            //});
 
             //showDialog(EXISTING_PROGRAM_DIALOG);
           }
@@ -202,13 +202,20 @@ public class ScriptInterface extends RosAppActivity {
     Log.i("ScriptInterface", "Run: GetProgram");
     try {
       ServiceClient<GetProgram.Request, GetProgram.Response> appServiceClient =
-        getNode().newServiceClient("/program_queue/getProgram", "program_queue/GetProgram");  
+        getNode().newServiceClient("/get_program", "program_queue/GetProgram");  
       GetProgram.Request appRequest = new GetProgram.Request();
       appRequest.id = token;
       appServiceClient.call(appRequest, new ServiceResponseListener<GetProgram.Response>() {
           @Override public void onSuccess(GetProgram.Response message) {
             current_program = message.program;
-            program_field.setText(message.program.code);
+            final String code = message.program.code;
+            Log.i("ScriptInterface", "Program is: " + code);
+            ScriptInterface.this.runOnUiThread(new Runnable() {
+              public void run() {
+              // TODO Auto-generated method stub
+              program_field.setText(code);
+              }
+            });
           }
 
           @Override public void onFailure(RemoteException e) {
@@ -222,20 +229,26 @@ public class ScriptInterface extends RosAppActivity {
     }
   }
 
-  private void getQueue()
+  //private void getQueue()
 
   private void getMyPrograms() {
     Log.i("ScriptInterface", "Run: GetMyPrograms");
     try {
       ServiceClient<GetMyPrograms.Request, GetMyPrograms.Response> appServiceClient =
-        getNode().newServiceClient("/program_queue/getMyPrograms", "program_queue/GetMyPrograms");  
+        getNode().newServiceClient("/get_my_programs", "program_queue/GetMyPrograms");  
       GetMyPrograms.Request appRequest = new GetMyPrograms.Request();
       appRequest.token = token;
       appServiceClient.call(appRequest, new ServiceResponseListener<GetMyPrograms.Response>() {
           @Override public void onSuccess(GetMyPrograms.Response message) {
-            stopProgress();
-            showDialog(EXISTING_PROGRAM_DIALOG);
+            //stopProgress();
             my_programs = message.programs;
+            ScriptInterface.this.runOnUiThread(new Runnable() {
+              public void run() {
+              // TODO Auto-generated method stub
+              showDialog(EXISTING_PROGRAM_DIALOG);
+
+              }  
+            });
           }
         
           @Override public void onFailure(RemoteException e) {
@@ -251,9 +264,13 @@ public class ScriptInterface extends RosAppActivity {
 
   private void updateProgram() {
     Log.i("ScriptInterface", "Run: UpdateProgram");
+    current_program.code = program_field.getText().toString();
+    current_program.info.name = name_field.getText().toString();
+    current_program.info.type = (byte) type;
+    current_program.info.owner = username;
     try {
       ServiceClient<UpdateProgram.Request, UpdateProgram.Response> appServiceClient =
-        getNode().newServiceClient("/program_queue/updateProgram", "program_queue/UpdateProgram");  
+        getNode().newServiceClient("/update_program", "program_queue/UpdateProgram");  
       UpdateProgram.Request appRequest = new UpdateProgram.Request();
       appRequest.token = token;
       appRequest.program = current_program;
@@ -274,6 +291,7 @@ public class ScriptInterface extends RosAppActivity {
   }
  
   private void createProgram() {
+    current_program =  new Program();
     current_program.code = program_field.getText().toString();
     current_program.info.name = name_field.getText().toString();
     current_program.info.type = (byte) type;
@@ -282,7 +300,7 @@ public class ScriptInterface extends RosAppActivity {
     Log.i("ScriptInterface", "Run: CreateProgram");
     try {
       ServiceClient<CreateProgram.Request, CreateProgram.Response> appServiceClient =
-        getNode().newServiceClient("/program_queue/createProgram", "program_queue/CreateProgram"); 
+        getNode().newServiceClient("/create_program", "program_queue/CreateProgram"); 
       CreateProgram.Request appRequest = new CreateProgram.Request();
       appRequest.token = token;
       appServiceClient.call(appRequest, new ServiceResponseListener<CreateProgram.Response>() {
@@ -332,13 +350,16 @@ public class ScriptInterface extends RosAppActivity {
 
   @Override
   protected Dialog onCreateDialog(int id) {
-    String[] program_names = { "program1", "program2", "program3" };
     final Dialog dialog;
     switch (id) {
       case EXISTING_PROGRAM_DIALOG:
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
-        if (program_names.length>0) { 
+        if (my_programs.size() > 0) { 
               builder.setTitle("Select a Progam to Edit");
+          String[] program_names = new String[my_programs.size()];
+          for (int i = 0; i < my_programs.size(); i++) {
+            program_names[i] = my_programs.get(i).name;
+          }
           builder.setSingleChoiceItems(program_names, 0, null)
            .setPositiveButton("Edit Selected", new DialogInterface.OnClickListener() {
              public void onClick(DialogInterface dialog, int whichButton) {
@@ -397,7 +418,7 @@ public class ScriptInterface extends RosAppActivity {
     Log.i("ScriptInterface", "Run: Logout");
     try {
       ServiceClient<Logout.Request, Logout.Response> appServiceClient =
-        getNode().newServiceClient("/program_queue/logout", "program_queue/Logout");  
+        getNode().newServiceClient("/logout", "program_queue/Logout");  
       Logout.Request appRequest = new Logout.Request();
       appRequest.token = token;
       appServiceClient.call(appRequest, new ServiceResponseListener<Logout.Response>() {
@@ -424,6 +445,10 @@ public class ScriptInterface extends RosAppActivity {
     //switch program type field, enter program name, put text in edit text
     getProgram(info.id); 
     name_field.setText(info.name);
+    if (current_program == null) {
+      current_program = new Program();
+    }
+    current_program.info.name = info.name;
     if (info.type == PYTHON) {
       spinner.setSelection(0);
       type = PYTHON;
@@ -434,18 +459,23 @@ public class ScriptInterface extends RosAppActivity {
      
   }
 
-  public void saveProgram() {
+  public void saveProgram(View view) {
     if (current_program != null) {
-      if (name_field.getText().toString() == current_program.info.name) {
+      Log.i("ScriptInterface", "Current program name: " + current_program.info.name);
+      Log.i("ScriptInterface", "Current program name: " + name_field.getText().toString());
+      if (name_field.getText().toString().equals(current_program.info.name)) {
+        Log.i("ScriptInterface", "Names match.");
         updateProgram();
       } else if (name_field.getText().toString() == "") {
         //alert dialog about needing name
       } else {
         //you are about to create a new program
+        Log.i("ScriptInterface", "Names don't match.");
         createProgram();
       }
       
     } else {
+      Log.i("ScriptInterface", "Program is null.");
       createProgram();
     }
   }
@@ -454,30 +484,28 @@ public class ScriptInterface extends RosAppActivity {
     //check if saved, if not prompt to save
     if (current_program.code == program_field.getText().toString()) {
       Log.i("ScriptInterface", "Run: QueueProgram");
+      saveProgram(findViewById(android.R.id.content));
       try {
         ServiceClient<QueueProgram.Request, QueueProgram.Response> appServiceClient =
-          getNode().newServiceClient("/program_queue/queueProgram", "program_queue/QueueProgram");  
+          getNode().newServiceClient("/queue_program", "program_queue/QueueProgram");  
         QueueProgram.Request appRequest = new QueueProgram.Request();
         appRequest.token = token;
         appServiceClient.call(appRequest, new ServiceResponseListener<QueueProgram.Response>() {
             @Override public void onSuccess(QueueProgram.Response message) {
               //tell user which position their item is in the queue, message.queue_position
             }
-
             @Override public void onFailure(RemoteException e) {
               //TODO: SHOULD ERROR
               Log.e("ScriptInterface", e.toString());
             }
-          });
+         });
       } catch (Exception e) {
         //TODO: should error
         Log.e("ScriptInterface", e.toString());
       }
-    } else {
-      //prompt to save
-      saveProgram(); 
-    }  
-  } 
+    } 
+    
+  }
 
   public class MyOnItemSelectedListener implements AdapterView.OnItemSelectedListener {
     @Override

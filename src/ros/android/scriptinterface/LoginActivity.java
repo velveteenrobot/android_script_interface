@@ -60,7 +60,7 @@ public class LoginActivity extends RosAppActivity {
   private Button login_btn;
   private Button cancel_btn;
   private Button newuser_btn;
-  private int token = 0;
+  private long token = 0;
 
   /** Called when the activity is first created. */
   @Override
@@ -190,9 +190,9 @@ public class LoginActivity extends RosAppActivity {
               public void onSuccess(Login.Response message) {
                 //Intent intent = getPackageManager().getLaunchIntentForPackage("org.ros.android.scriptinterface.ScriptInterface");
                 Intent intent = new Intent(LoginActivity.this, ScriptInterface.class);
-                token = (int) message.token;
+                token = (long) message.token;
                 intent.putExtra("username", username);
-                intent.putExtra("token", message.token);
+                intent.putExtra("token", token);
                 intent.putExtra("is_admin", message.is_admin);
                 intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
                 startActivityForResult(intent, 0);
