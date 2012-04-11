@@ -103,12 +103,23 @@
               android:id="@+id/tab2"
               android:orientation="vertical"
               android:paddingTop="60px">
+           <RelativeLayout
+              android:layout_width="fill_parent"
+              android:layout_height="wrap_content">
            <Button 
                 android:layout_width="wrap_content" 
                 android:layout_height="wrap_content" 
                 android:text="Clear Queue"
                 android:onClick="clearQueue"
                 android:id="@+id/clear_btn" />
+           <Button 
+                android:layout_width="wrap_content" 
+                android:layout_height="wrap_content" 
+                android:text="Refresh!"
+                android:layout_toRightOf="@id/clear_btn"
+                android:onClick="updateQueue"
+                android:id="@+id/refresh_btn" />
+           </RelativeLayout>
            <ListView android:id="@+id/list"
                 android:layout_width="fill_parent"
 		android:layout_height="fill_parent"/>

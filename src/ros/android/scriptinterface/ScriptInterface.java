@@ -343,6 +343,9 @@ public class ScriptInterface extends RosAppActivity {
     }
   }
 
+  public void updateQueue(View view) {
+    getQueue();
+  }
  
   private void getProgram(long id) {
     Log.i("ScriptInterface", "Run: GetProgram");

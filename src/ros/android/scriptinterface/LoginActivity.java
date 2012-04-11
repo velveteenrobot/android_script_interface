@@ -111,7 +111,11 @@ public class LoginActivity extends RosAppActivity {
           appServiceClient.call(appRequest, new ServiceResponseListener<CreateUser.Response>() {
               @Override 
               public void onSuccess(CreateUser.Response message) {
-               login();
+               if (message.token != 0) {
+                 login();
+               } else {
+                 //should warn about user with same name exists
+               }    
               }
 
               @Override 
@@ -191,12 +195,14 @@ public class LoginActivity extends RosAppActivity {
                 //Intent intent = getPackageManager().getLaunchIntentForPackage("org.ros.android.scriptinterface.ScriptInterface");
                 Intent intent = new Intent(LoginActivity.this, ScriptInterface.class);
                 token = (long) message.token;
+                if (token != 0) {
                 intent.putExtra("username", username);
                 intent.putExtra("token", token);
                 intent.putExtra("is_admin", message.is_admin);
                 intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
                 startActivityForResult(intent, 0);
                 finish();
+                }
               }  
 
               @Override 
