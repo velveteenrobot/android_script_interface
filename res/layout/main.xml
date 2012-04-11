@@ -103,11 +103,15 @@
               android:id="@+id/tab2"
               android:orientation="vertical"
               android:paddingTop="60px">
-            <TextView  
-                android:layout_width="fill_parent" 
-                android:layout_height="100px" 
-                android:text="This is tab2"
-                android:id="@+id/txt2"/>
+           <Button 
+                android:layout_width="wrap_content" 
+                android:layout_height="wrap_content" 
+                android:text="Clear Queue"
+                android:onClick="clearQueue"
+                android:id="@+id/clear_btn" />
+           <ListView android:id="@+id/list"
+                android:layout_width="fill_parent"
+		android:layout_height="fill_parent"/>
            </LinearLayout>
            <LinearLayout
               android:layout_width="fill_parent"

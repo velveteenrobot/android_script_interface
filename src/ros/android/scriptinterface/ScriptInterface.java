@@ -28,11 +28,15 @@ import org.ros.node.topic.Publisher;
 import org.ros.service.app_manager.StartApp;
 import org.ros.node.service.ServiceResponseListener;
 import android.widget.Toast;
+import android.widget.ListView;
+import android.widget.ArrayAdapter;
 import android.view.Menu;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.MenuInflater;
 import android.view.MenuItem;
+import android.view.LayoutInflater;
+import android.widget.TextView;
 import android.widget.LinearLayout;
 import org.ros.service.std_srvs.Empty;
 import org.ros.message.trajectory_msgs.JointTrajectory;
@@ -40,8 +44,10 @@ import org.ros.message.trajectory_msgs.JointTrajectoryPoint;
 import java.util.ArrayList;
 import org.ros.message.Duration;
 import android.content.Intent;
+import android.content.Context;
 import java.lang.Class;
-
+import android.view.ViewGroup;
+import android.widget.BaseAdapter;
 import android.content.res.Resources;
 import android.widget.TabHost;
 import android.content.DialogInterface;
@@ -95,9 +101,20 @@ public class ScriptInterface extends RosAppActivity {
   private String username;
   private int type;
   private boolean is_admin = false;
-  private ArrayList<ProgramInfo> program_queue;
+  private ArrayList<ProgramInfo> program_queue = new ArrayList();
+  private ListView list;
+  private ArrayList<String> queue_names = new ArrayList();
 
   /** Called when the activity is first created. */
+
+  static final String[] SAMPLE = new String[] {
+    "Afghanistan", "Albania", "Algeria", "American Samoa", "Andorra",
+    "Angola", "Anguilla", "Antarctica", "Antigua and Barbuda", "Argentina",
+    "Armenia", "Aruba", "Australia", "Austria", "Azerbaijan",
+    "Bahrain", "Bangladesh", "Barbados", "Belarus", "Belgium",
+    "Belize", "Benin", "Bermuda", "Bhutan", "Bolivia",
+    "Bosnia and Herzegovina", "Botswana", "Bouvet Island", "Brazil", "British Indian Ocean Territory",
+    "British Virgin Islands", "Brunei", "Bulgaria"};
   @Override
   public void onCreate(Bundle savedInstanceState) {
 
@@ -149,7 +166,18 @@ public class ScriptInterface extends RosAppActivity {
         spinner.setAdapter(adapter);
         spinner.setOnItemSelectedListener(new MyOnItemSelectedListener());
 
-       TabHost tabHost=(TabHost)findViewById(R.id.tabHost);
+        list=(ListView)findViewById(R.id.list);
+        QueueAdapter queueAdapter = new QueueAdapter();
+ 
+        if (queueAdapter != null) {
+          Log.i("ScriptInterface", "Queue Adapter not null.");
+        } else {
+          Log.i("ScriptInterface", "Queue Adapter null.");
+        }
+ 
+        list.setAdapter(queueAdapter);
+
+        TabHost tabHost=(TabHost)findViewById(R.id.tabHost);
         tabHost.setup();
         
         TabHost.TabSpec spec1=tabHost.newTabSpec("Tab 1");
@@ -157,7 +185,7 @@ public class ScriptInterface extends RosAppActivity {
         spec1.setIndicator("Write Program");
         
         TabHost.TabSpec spec2=tabHost.newTabSpec("Tab 2");
-        spec2.setIndicator("Tab 2");
+        spec2.setIndicator("Queue");
         spec2.setContent(R.id.tab2);
         
         TabHost.TabSpec spec3=tabHost.newTabSpec("Tab 3");
@@ -178,6 +206,7 @@ public class ScriptInterface extends RosAppActivity {
   @Override
   protected void onNodeCreate(Node node) {
     super.onNodeCreate(node);
+    getQueue();
   }
   
   @Override
@@ -185,6 +214,123 @@ public class ScriptInterface extends RosAppActivity {
     super.onNodeDestroy(node);
   }
   
+
+  public class QueueAdapter extends BaseAdapter { 
+
+        public QueueAdapter() {          
+           //super(ScriptInterface.this, R.layout.queue_item);
+        }
+
+    public int getCount() {
+        return program_queue.size();
+    }
+
+    public long getItemId(int position) {
+        return position;
+    }
+
+    public Object getItem(int position) {
+        return program_queue.get(position);
+    }
+
+        @Override
+        public View getView(int position, View convertView, ViewGroup parent) 
+        {
+            Log.i("ScriptInterface", "Getting View!");
+            convertView = null;
+            //LayoutInflater inflater = getLayoutInflater();
+
+            
+            //row = inflater.inflate(R.layout.queue_item, parent, false);
+
+            if (convertView == null) {
+              LayoutInflater inflater = (LayoutInflater) ScriptInterface.this.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+              convertView = inflater.inflate(R.layout.queue_item, null);
+            }
+
+            final ProgramInfo info = program_queue.get(position);
+
+            TextView name = (TextView) convertView.findViewById(R.id.name_row);
+            name.setText(info.name);
+            TextView owner = (TextView) convertView.findViewById(R.id.owner_row);
+            owner.setText(info.owner);
+            Button delete_btn = (Button) convertView.findViewById(R.id.delete_btn);
+            Button run_btn = (Button) convertView.findViewById(R.id.run_btn);
+
+            delete_btn.setOnClickListener(
+                new Button.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        
+                        dequeue(info.id);
+                        //call getQueue() in delete service
+                    }
+                }
+            );
+            run_btn.setOnClickListener(
+                new Button.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+
+                        runProgram(info.id);
+                        //call getQueue() in delete service
+                    }
+                }
+            );
+
+            return(convertView);
+        }
+  }
+
+  public void dequeue(long id) {
+    Log.i("ScriptInterface", "Run: DequeueProgram");
+    try {
+      ServiceClient<DequeueProgram.Request, DequeueProgram.Response> appServiceClient =
+        getNode().newServiceClient("/dequeue_program", "program_queue/DequeueProgram");
+      DequeueProgram.Request appRequest = new DequeueProgram.Request();
+      appRequest.token = token;
+      appRequest.id = id;
+      appServiceClient.call(appRequest, new ServiceResponseListener<DequeueProgram.Response>() {
+          @Override public void onSuccess(DequeueProgram.Response message) {
+            getQueue();
+          }
+
+          @Override public void onFailure(RemoteException e) {
+            //TODO: SHOULD ERROR
+            Log.e("ScriptInterface", e.toString());
+          }
+        });
+    } catch (Exception e) {
+      //TODO: should error
+      Log.e("ScriptInterface", e.toString());
+    }
+  
+  }
+
+  public void runProgram(long id) {
+    Log.i("ScriptInterface", "Run: runProgram");
+    try {
+      ServiceClient<RunProgram.Request, RunProgram.Response> appServiceClient =
+        getNode().newServiceClient("/run_program", "program_queue/RunProgram");
+      RunProgram.Request appRequest = new RunProgram.Request();
+      appRequest.token = token;
+      appRequest.id = id;
+      appServiceClient.call(appRequest, new ServiceResponseListener<RunProgram.Response>() {
+          @Override public void onSuccess(RunProgram.Response message) {
+            getQueue();
+          }
+
+          @Override public void onFailure(RemoteException e) {
+            //TODO: SHOULD ERROR
+            Log.e("ScriptInterface", e.toString());
+          }
+        });
+    } catch (Exception e) {
+      //TODO: should error
+      Log.e("ScriptInterface", e.toString());
+    }
+
+  }
 
   private void stopProgress() {
     final ProgressDialog temp = progress;
@@ -204,10 +350,11 @@ public class ScriptInterface extends RosAppActivity {
       ServiceClient<GetProgram.Request, GetProgram.Response> appServiceClient =
         getNode().newServiceClient("/get_program", "program_queue/GetProgram");  
       GetProgram.Request appRequest = new GetProgram.Request();
-      appRequest.id = token;
+      appRequest.id = id;
       appServiceClient.call(appRequest, new ServiceResponseListener<GetProgram.Response>() {
           @Override public void onSuccess(GetProgram.Response message) {
             current_program = message.program;
+            Log.i("ScriptInterface", "ID is : " + String.valueOf(message.program.info.id));
             final String code = message.program.code;
             Log.i("ScriptInterface", "Program is: " + code);
             ScriptInterface.this.runOnUiThread(new Runnable() {
@@ -229,8 +376,41 @@ public class ScriptInterface extends RosAppActivity {
     }
   }
 
-  //private void getQueue()
+  private void getQueue() {
+    Log.i("ScriptInterface", "Run: GetQueue");
+    try {
+      ServiceClient<GetQueue.Request, GetQueue.Response> appServiceClient =
+        getNode().newServiceClient("/get_queue", "program_queue/GetQueue");
+      GetQueue.Request appRequest = new GetQueue.Request();
+      appServiceClient.call(appRequest, new ServiceResponseListener<GetQueue.Response>() {
+          @Override public void onSuccess(GetQueue.Response message) {
+            //stopProgress();
+            program_queue = message.programs;
+            queue_names.clear();
+            for (int i = 0; i < program_queue.size(); i++) {
+              Log.i("ScriptInterface", "Queue contains: " + program_queue.get(i).name);
+              queue_names.add(program_queue.get(i).name);
+            }
+            ScriptInterface.this.runOnUiThread(new Runnable() {
+              public void run() {
+              Log.i("ScriptInterface", "Dataset changed!");
+              QueueAdapter queueAdapter = new QueueAdapter();
+              list.setAdapter(queueAdapter);
+              queueAdapter.notifyDataSetChanged();
+              }
+            });
+          }
 
+          @Override public void onFailure(RemoteException e) {
+            //TODO: SHOULD ERROR
+            Log.e("ScriptInterface", e.toString());
+          }
+        });
+    } catch (Exception e) {
+      //TODO: should error
+      Log.e("ScriptInterface", e.toString());
+    }  
+  }
   private void getMyPrograms() {
     Log.i("ScriptInterface", "Run: GetMyPrograms");
     try {
@@ -268,6 +448,7 @@ public class ScriptInterface extends RosAppActivity {
     current_program.info.name = name_field.getText().toString();
     current_program.info.type = (byte) type;
     current_program.info.owner = username;
+    
     try {
       ServiceClient<UpdateProgram.Request, UpdateProgram.Response> appServiceClient =
         getNode().newServiceClient("/update_program", "program_queue/UpdateProgram");  
@@ -307,6 +488,29 @@ public class ScriptInterface extends RosAppActivity {
           @Override public void onSuccess(CreateProgram.Response message) {
             current_program.info.id = message.id;
             updateProgram();
+          }
+
+          @Override public void onFailure(RemoteException e) {
+            //TODO: SHOULD ERROR
+            Log.e("ScriptInterface", e.toString());
+          }
+        });
+    } catch (Exception e) {
+      //TODO: should error
+      Log.e("ScriptInterface", e.toString());
+    }
+  }
+
+  public void clearQueue(View view){
+    Log.i("ScriptInterface", "Run: ClearQueue");
+    try {
+      ServiceClient<ClearQueue.Request, ClearQueue.Response> appServiceClient =
+        getNode().newServiceClient("/clear_queue", "program_queue/ClearQueue");
+      ClearQueue.Request appRequest = new ClearQueue.Request();
+      appRequest.token = token;
+      appServiceClient.call(appRequest, new ServiceResponseListener<ClearQueue.Response>() {
+          @Override public void onSuccess(ClearQueue.Response message) {
+            getQueue();            
           }
 
           @Override public void onFailure(RemoteException e) {
@@ -480,9 +684,11 @@ public class ScriptInterface extends RosAppActivity {
     }
   }
 
-  public void addToQueue() {
+  public void addToQueue(View view) {
     //check if saved, if not prompt to save
-    if (current_program.code == program_field.getText().toString()) {
+    Log.i("ScriptInterface", "Current Program code: " + current_program.code);
+    Log.i("ScriptInterface", "Text Field code: " + program_field.getText().toString());
+    if (current_program.code.equals(program_field.getText().toString())) {
       Log.i("ScriptInterface", "Run: QueueProgram");
       saveProgram(findViewById(android.R.id.content));
       try {
@@ -490,9 +696,11 @@ public class ScriptInterface extends RosAppActivity {
           getNode().newServiceClient("/queue_program", "program_queue/QueueProgram");  
         QueueProgram.Request appRequest = new QueueProgram.Request();
         appRequest.token = token;
+        appRequest.program_id = current_program.info.id;
         appServiceClient.call(appRequest, new ServiceResponseListener<QueueProgram.Response>() {
             @Override public void onSuccess(QueueProgram.Response message) {
               //tell user which position their item is in the queue, message.queue_position
+              getQueue();
             }
             @Override public void onFailure(RemoteException e) {
               //TODO: SHOULD ERROR
