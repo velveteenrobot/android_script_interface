@@ -580,6 +580,14 @@ public class ScriptInterface extends RosAppActivity {
              removeDialog(EXISTING_PROGRAM_DIALOG);
            }
          });
+         builder.setNeutralButton("Add to Queue", new DialogInterface.OnClickListener() {
+           public void onClick(DialogInterface dialog, int whichButton) {
+             int selectedPosition = ((AlertDialog)dialog).getListView().getCheckedItemPosition();
+             removeDialog(EXISTING_PROGRAM_DIALOG);
+             ProgramInfo info = my_programs.get(selectedPosition);
+             queueProgram(info.id);
+           }
+         });
          dialog = builder.create();
          }
        else {
@@ -694,12 +702,18 @@ public class ScriptInterface extends RosAppActivity {
     if (current_program.code.equals(program_field.getText().toString())) {
       Log.i("ScriptInterface", "Run: QueueProgram");
       saveProgram(findViewById(android.R.id.content));
+      queueProgram(current_program.info.id );
+    } 
+    
+  }
+
+  public void queueProgram(long id) {
       try {
         ServiceClient<QueueProgram.Request, QueueProgram.Response> appServiceClient =
           getNode().newServiceClient("/queue_program", "program_queue/QueueProgram");  
         QueueProgram.Request appRequest = new QueueProgram.Request();
         appRequest.token = token;
-        appRequest.program_id = current_program.info.id;
+        appRequest.program_id = id;
         appServiceClient.call(appRequest, new ServiceResponseListener<QueueProgram.Response>() {
             @Override public void onSuccess(QueueProgram.Response message) {
               //tell user which position their item is in the queue, message.queue_position
@@ -714,8 +728,7 @@ public class ScriptInterface extends RosAppActivity {
         //TODO: should error
         Log.e("ScriptInterface", e.toString());
       }
-    } 
-    
+
   }
 
   public class MyOnItemSelectedListener implements AdapterView.OnItemSelectedListener {
