@@ -63,6 +63,7 @@ import java.util.Timer;
 import java.util.TimerTask;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ImageButton;
 
 import org.ros.message.program_queue.Program;
 import org.ros.message.program_queue.ProgramInfo;
@@ -104,6 +105,8 @@ public class ScriptInterface extends RosAppActivity {
   private ArrayList<ProgramInfo> program_queue = new ArrayList();
   private ListView list;
   private ArrayList<String> queue_names = new ArrayList();
+  private ArrayList<ProgramInfo> favourite_programs = new ArrayList();
+  private ListView favourite_list;
 
   /** Called when the activity is first created. */
 
@@ -167,6 +170,7 @@ public class ScriptInterface extends RosAppActivity {
         spinner.setOnItemSelectedListener(new MyOnItemSelectedListener());
 
         list=(ListView)findViewById(R.id.list);
+        favourite_list = (ListView)findViewById(R.id.favourites_list);
         QueueAdapter queueAdapter = new QueueAdapter();
  
         if (queueAdapter != null) {
@@ -176,6 +180,14 @@ public class ScriptInterface extends RosAppActivity {
         }
  
         list.setAdapter(queueAdapter);
+
+        FavouritesAdapter favouritesAdapter = new FavouritesAdapter();
+        if (favouritesAdapter != null) {
+          Log.i("ScriptInterface", "Favourite Adapter not null.");
+        } else {
+          Log.i("ScriptInterface", "Favourite Adapter null.");
+        }
+        favourite_list.setAdapter(favouritesAdapter);
 
         TabHost tabHost=(TabHost)findViewById(R.id.tabHost);
         tabHost.setup();
@@ -189,7 +201,7 @@ public class ScriptInterface extends RosAppActivity {
         spec2.setContent(R.id.tab2);
         
         TabHost.TabSpec spec3=tabHost.newTabSpec("Tab 3");
-        spec3.setIndicator("Tab 3");
+        spec3.setIndicator("Favourites Tab");
         spec3.setContent(R.id.tab3);
 
         TabHost.TabSpec spec4=tabHost.newTabSpec("Tab 4");
@@ -213,7 +225,89 @@ public class ScriptInterface extends RosAppActivity {
   protected void onNodeDestroy(Node node) {
     super.onNodeDestroy(node);
   }
-  
+ 
+  public class FavouritesAdapter extends BaseAdapter { 
+
+        public FavouritesAdapter() {          
+           //super(ScriptInterface.this, R.layout.queue_item);
+        }
+
+    public int getCount() {
+        return favourite_programs.size();
+    }
+
+    public long getItemId(int position) {
+        return position;
+    }
+
+    public Object getItem(int position) {
+        return favourite_programs.get(position);
+    }
+
+        @Override
+        public View getView(int position, View convertView, ViewGroup parent) 
+        {
+            Log.i("ScriptInterface", "Getting View!");
+            convertView = null;
+            //LayoutInflater inflater = getLayoutInflater();
+
+            
+            //row = inflater.inflate(R.layout.queue_item, parent, false);
+
+            if (convertView == null) {
+              LayoutInflater inflater = (LayoutInflater) ScriptInterface.this.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+              convertView = inflater.inflate(R.layout.favourite_item, null);
+            }
+
+            final ProgramInfo info = favourite_programs.get(position);
+
+            TextView f_name = (TextView) convertView.findViewById(R.id.f_name_row);
+            f_name.setText(info.name);
+            TextView f_owner = (TextView) convertView.findViewById(R.id.f_owner_row);
+            f_owner.setText(info.owner);
+            Button f_queue_btn = (Button) convertView.findViewById(R.id.f_queue_btn);
+
+            ImageButton imageButton = (ImageButton) convertView.findViewById(R.id.favourite_btn);
+            if (favourite_programs.contains(info)) {
+              imageButton.setImageDrawable(ScriptInterface.this.getResources().getDrawable(R.drawable.r1));
+            } else {
+              imageButton.setImageDrawable(ScriptInterface.this.getResources().getDrawable(R.drawable.w1));
+            }
+
+            //set the click listener
+            imageButton.setOnClickListener(new OnClickListener() {
+
+              public void onClick(View button) {
+                if (button.isSelected()){
+                  button.setSelected(false);
+                  favourite_programs.remove(info);
+                  //...Handle toggle off
+                } else {
+                  button.setSelected(true);
+                  favourite_programs.add(info);
+                  //...Handled toggle on
+                }
+             }
+
+            });
+
+
+            f_queue_btn.setOnClickListener(
+                new Button.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        
+                        queueProgram(info.id);
+                        //call getQueue() in delete service
+                    }
+                }
+            );
+
+            
+
+            return(convertView);
+        }
+  } 
 
   public class QueueAdapter extends BaseAdapter { 
 
@@ -257,6 +351,34 @@ public class ScriptInterface extends RosAppActivity {
             Button delete_btn = (Button) convertView.findViewById(R.id.delete_btn);
             Button run_btn = (Button) convertView.findViewById(R.id.run_btn);
 
+            ImageButton imageButton = (ImageButton) convertView.findViewById(R.id.favourite_btn);
+            if (favourite_programs.contains(info)) {
+              imageButton.setImageDrawable(ScriptInterface.this.getResources().getDrawable(R.drawable.r1));
+            } else {
+              imageButton.setImageDrawable(ScriptInterface.this.getResources().getDrawable(R.drawable.w1));
+            }
+
+            //set the click listener
+            imageButton.setOnClickListener(new OnClickListener() {
+
+              public void onClick(View button) {
+                if (button.isSelected()){
+                  button.setSelected(false);
+                  favourite_programs.remove(info);
+                  //...Handle toggle off
+                } else {
+                  button.setSelected(true);
+                  favourite_programs.add(info);
+                  //...Handled toggle on
+                }
+                FavouritesAdapter favouritesAdapter = new FavouritesAdapter();
+                favourite_list.setAdapter(favouritesAdapter);
+                favouritesAdapter.notifyDataSetChanged();
+             }
+
+            });
+
+
             delete_btn.setOnClickListener(
                 new Button.OnClickListener() {
                     @Override
@@ -277,6 +399,8 @@ public class ScriptInterface extends RosAppActivity {
                     }
                 }
             );
+
+            
 
             return(convertView);
         }
