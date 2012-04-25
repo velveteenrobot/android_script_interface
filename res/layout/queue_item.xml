@@ -30,5 +30,6 @@
             android:id="@+id/favourite_btn"
             android:textColor="#FFF" android:src="@drawable/button_states"
             android:background="@null"
+            android:scaleType="fitStart"
             android:layout_width="wrap_content" />
 </LinearLayout>

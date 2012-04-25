@@ -19,12 +19,13 @@
     android:textSize="16dp"
     android:padding="6dp" />
 <Button android:id="@+id/f_queue_btn"
-        android:text="Delete"
+        android:text="Queue"
         android:layout_width= "wrap_content"
         android:layout_height= "wrap_content"/>
 <ImageButton android:layout_height="fill_parent"
             android:id="@+id/favourite_btn" android:enabled="false"
             android:textColor="#FFF" android:src="@drawable/button_states"
             android:background="@null"
+            android:scaleType="fitStart"
             android:layout_width="wrap_content" />
 </LinearLayout>

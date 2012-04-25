@@ -134,18 +134,6 @@
                 android:layout_width="fill_parent"
                 android:layout_height="fill_parent"/>
            </LinearLayout>
-           <LinearLayout
-              android:layout_width="fill_parent"
-              android:layout_height="wrap_content"
-              android:id="@+id/tab4"
-              android:orientation="vertical"
-              android:paddingTop="60px">
-            <TextView  
-                android:layout_width="fill_parent" 
-                android:layout_height="100px" 
-                android:text="This is tab4"
-                android:id="@+id/txt4"/>
-           </LinearLayout>
     </FrameLayout>
     </LinearLayout>
 </TabHost>

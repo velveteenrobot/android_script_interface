@@ -93,6 +93,7 @@ public class ScriptInterface extends RosAppActivity {
   private static final int EXISTING_PROGRAM_DIALOG = 1;
   private static final int PYTHON = 1;
   private static final int PUPPETSCRIPT = 0;
+  private static String DB_NAME = "favourites_db";
   private ProgressDialog progress;
   private ArrayList<ProgramInfo> my_programs;
   private EditText name_field;
@@ -107,17 +108,11 @@ public class ScriptInterface extends RosAppActivity {
   private ArrayList<String> queue_names = new ArrayList();
   private ArrayList<ProgramInfo> favourite_programs = new ArrayList();
   private ListView favourite_list;
+  //private static final String DB_NAME = "favourite_programs";
+  //private static final String TABLE_NAME = "favourite_programs";
 
   /** Called when the activity is first created. */
 
-  static final String[] SAMPLE = new String[] {
-    "Afghanistan", "Albania", "Algeria", "American Samoa", "Andorra",
-    "Angola", "Anguilla", "Antarctica", "Antigua and Barbuda", "Argentina",
-    "Armenia", "Aruba", "Australia", "Austria", "Azerbaijan",
-    "Bahrain", "Bangladesh", "Barbados", "Belarus", "Belgium",
-    "Belize", "Benin", "Bermuda", "Bhutan", "Bolivia",
-    "Bosnia and Herzegovina", "Botswana", "Bouvet Island", "Brazil", "British Indian Ocean Territory",
-    "British Virgin Islands", "Brunei", "Bulgaria"};
   @Override
   public void onCreate(Bundle savedInstanceState) {
 
@@ -137,6 +132,20 @@ public class ScriptInterface extends RosAppActivity {
     if (startingIntent.hasExtra("is_admin")) {
       is_admin = startingIntent.getBooleanExtra("is_admin", false);
     }
+
+    /*db = this.openOrCreateDatabase(DB_NAME, MODE_PRIVATE, null);
+    db.execSQL("CREATE TABLE IF NOT EXISTS " +
+                        TABLE_NAME +
+                        " (ProgramId INT);");
+    Cursor c = sampleDB.rawQuery("SELECT ProgramId FROM " +
+                        SAMPLE_TABLE_NAME, null);
+    
+    
+    db.execSQL("DELETE * FROM " +
+                        TABLE_NAME +
+                       ";");   
+    */
+ 
     setDefaultAppName("pr2_props_app/pr2_props");
     setDashboardResource(R.id.top_bar);
     setMainWindowResource(R.layout.main);
@@ -204,15 +213,15 @@ public class ScriptInterface extends RosAppActivity {
         spec3.setIndicator("Favourites Tab");
         spec3.setContent(R.id.tab3);
 
-        TabHost.TabSpec spec4=tabHost.newTabSpec("Tab 4");
+        /*TabHost.TabSpec spec4=tabHost.newTabSpec("Tab 4");
         spec4.setIndicator("Tab 4");
         spec4.setContent(R.id.tab4);
-        
+        */
         tabHost.addTab(spec1);
         tabHost.addTab(spec2);
         tabHost.addTab(spec3);
-        tabHost.addTab(spec4);
-
+        //tabHost.addTab(spec4);
+        
   }
 
   @Override
@@ -223,6 +232,12 @@ public class ScriptInterface extends RosAppActivity {
   
   @Override
   protected void onNodeDestroy(Node node) {
+    /*for (int i = 0; i < my_programs.size(); i++) {
+      db.execSQL("INSERT INTO " +
+                        TABLE_NAME +
+                        " Values (" + my_programs.get(i).id.toString() + " );");
+    } 
+    */
     super.onNodeDestroy(node);
   }
  
@@ -278,7 +293,12 @@ public class ScriptInterface extends RosAppActivity {
             imageButton.setOnClickListener(new OnClickListener() {
 
               public void onClick(View button) {
-                if (button.isSelected()){
+                  favourite_programs.remove(info);
+                  FavouritesAdapter favouritesAdapter = new FavouritesAdapter();
+                  favourite_list.setAdapter(favouritesAdapter);
+                  favouritesAdapter.notifyDataSetChanged();
+                  getQueue();
+                /*if (button.isSelected()){
                   button.setSelected(false);
                   favourite_programs.remove(info);
                   //...Handle toggle off
@@ -286,7 +306,7 @@ public class ScriptInterface extends RosAppActivity {
                   button.setSelected(true);
                   favourite_programs.add(info);
                   //...Handled toggle on
-                }
+                }*/
              }
 
             });
@@ -362,7 +382,7 @@ public class ScriptInterface extends RosAppActivity {
             imageButton.setOnClickListener(new OnClickListener() {
 
               public void onClick(View button) {
-                if (button.isSelected()){
+                if (favourite_programs.contains(info)){
                   button.setSelected(false);
                   favourite_programs.remove(info);
                   //...Handle toggle off
@@ -374,9 +394,11 @@ public class ScriptInterface extends RosAppActivity {
                 FavouritesAdapter favouritesAdapter = new FavouritesAdapter();
                 favourite_list.setAdapter(favouritesAdapter);
                 favouritesAdapter.notifyDataSetChanged();
+                getQueue();
              }
 
             });
+
 
 
             delete_btn.setOnClickListener(
